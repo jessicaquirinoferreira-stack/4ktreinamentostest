@@ -1,0 +1,8 @@
+{
+  "name": "4k Treinamentos — Cursos Online de Segurança do Trabalho (NRs)",
+  "description": "Plataforma brasileira de treinamentos e certificações digitais em Normas Regulamentadoras (NR-06, NR-12, NR-18, NR-33 e NR-35) com prova formal, assinatura do instrutor e emissão instantânea de certificado válido em todo o Brasil.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

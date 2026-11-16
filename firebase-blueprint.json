@@ -1,0 +1,321 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Perfil do aluno ou administrador cadastrado na plataforma 4k Treinamentos.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "maxLength": 120 },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "cpf": { "type": "string", "maxLength": 20 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "company": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["student", "admin"], "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role", "createdAt", "updatedAt"]
+    },
+    "AdminEntry": {
+      "title": "AdminEntry",
+      "description": "Registro de administradores autorizados.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Curso de Norma Regulamentadora (NR) com página de vendas de alta conversão, carga horária, preço e validade.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "slug": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "nrCode": { "type": "string", "maxLength": 20 },
+        "title": { "type": "string", "maxLength": 180 },
+        "shortDescription": { "type": "string", "maxLength": 400 },
+        "fullDescription": { "type": "string", "maxLength": 5000 },
+        "salesHeadline": { "type": "string", "maxLength": 240 },
+        "salesSubheadline": { "type": "string", "maxLength": 500 },
+        "promoTag": { "type": "string", "maxLength": 120 },
+        "originalPriceCents": { "type": "number" },
+        "enrolledCount": { "type": "number" },
+        "ratingAverage": { "type": "number" },
+        "ratingCount": { "type": "number" },
+        "guaranteeDays": { "type": "number" },
+        "workloadHours": { "type": "number" },
+        "priceCents": { "type": "number" },
+        "certificateValidityMonths": { "type": "number" },
+        "targetAudience": { "type": "string", "maxLength": 1000 },
+        "notForAudience": { "type": "array" },
+        "includedBonuses": { "type": "array" },
+        "learningOutcomes": { "type": "array" },
+        "faq": { "type": "array" },
+        "coverImageUrl": { "type": "string", "maxLength": 1000 },
+        "bannerImageUrl": { "type": "string", "maxLength": 1000 },
+        "instructorName": { "type": "string", "maxLength": 120 },
+        "instructorRole": { "type": "string", "maxLength": 120 },
+        "instructorRegistry": { "type": "string", "maxLength": 80 },
+        "status": { "type": "string", "enum": ["published", "draft"], "maxLength": 20 },
+        "displayOrder": { "type": "number" },
+        "passingScore": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "slug", "nrCode", "title", "shortDescription", "fullDescription", "workloadHours", "priceCents", "certificateValidityMonths", "status", "displayOrder", "passingScore", "createdAt", "updatedAt"]
+    },
+    "CourseModule": {
+      "title": "CourseModule",
+      "description": "Módulo de conteúdo de um curso com aulas em texto, vídeo ou PDF.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 600 },
+        "order": { "type": "number" },
+        "lessons": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "title", "order", "lessons", "updatedAt"]
+    },
+    "ExamQuestion": {
+      "title": "ExamQuestion",
+      "description": "Questão objetiva da prova formal de certificação de um curso.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "prompt": { "type": "string", "maxLength": 1000 },
+        "options": { "type": "array" },
+        "correctIndex": { "type": "number" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "courseId", "prompt", "options", "correctIndex", "order"]
+    },
+    "FunnelOffer": {
+      "title": "FunnelOffer",
+      "description": "Ofertas de funil de vendas: Order Bump no checkout, Upsell pós-compra e Combos/Pacotes de cursos.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "type": { "type": "string", "enum": ["order_bump", "upsell", "combo"], "maxLength": 20 },
+        "title": { "type": "string", "maxLength": 180 },
+        "subtitle": { "type": "string", "maxLength": 240 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "triggerCourseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "includedCourseIds": { "type": "array" },
+        "originalPriceCents": { "type": "number" },
+        "offerPriceCents": { "type": "number" },
+        "badgeLabel": { "type": "string", "maxLength": 80 },
+        "active": { "type": "boolean" },
+        "displayOrder": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "type", "title", "description", "includedCourseIds", "originalPriceCents", "offerPriceCents", "active", "displayOrder", "updatedAt"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Depoimento verificável de aluno ou empresa para páginas de vendas.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "authorName": { "type": "string", "maxLength": 120 },
+        "authorRole": { "type": "string", "maxLength": 120 },
+        "company": { "type": "string", "maxLength": 120 },
+        "rating": { "type": "number" },
+        "quote": { "type": "string", "maxLength": 1000 },
+        "verifiedPurchase": { "type": "boolean" },
+        "active": { "type": "boolean" },
+        "displayOrder": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "authorName", "authorRole", "company", "rating", "quote", "verifiedPurchase", "active", "displayOrder", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Pedido de compra de curso (com suporte a Order Bump, Combo e Upsell) integrado com InfinitePay.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userName": { "type": "string", "maxLength": 120 },
+        "userEmail": { "type": "string", "maxLength": 160 },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseIds": { "type": "array" },
+        "courseTitle": { "type": "string", "maxLength": 240 },
+        "itemsSummary": { "type": "array" },
+        "orderBumpId": { "type": "string", "maxLength": 128 },
+        "comboId": { "type": "string", "maxLength": 128 },
+        "parentOrderId": { "type": "string", "maxLength": 128 },
+        "upsellOfferId": { "type": "string", "maxLength": 128 },
+        "amountCents": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "paid", "released", "cancelled"], "maxLength": 20 },
+        "paymentProvider": { "type": "string", "maxLength": 30 },
+        "checkoutUrl": { "type": "string", "maxLength": 1000 },
+        "transactionNsu": { "type": "string", "maxLength": 128 },
+        "invoiceSlug": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userName", "userEmail", "courseId", "courseTitle", "amountCents", "status", "paymentProvider", "createdAt", "updatedAt"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Matrícula e progresso do aluno em um curso liberado.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userName": { "type": "string", "maxLength": 120 },
+        "userEmail": { "type": "string", "maxLength": 160 },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseTitle": { "type": "string", "maxLength": 180 },
+        "orderId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "completedLessonIds": { "type": "array" },
+        "progressPercent": { "type": "number" },
+        "examAttempts": { "type": "number" },
+        "examPassed": { "type": "boolean" },
+        "bestScore": { "type": "number" },
+        "certificateId": { "type": "string", "maxLength": 128 },
+        "enrolledAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userName", "userEmail", "courseId", "courseTitle", "orderId", "completedLessonIds", "progressPercent", "examAttempts", "examPassed", "bestScore", "enrolledAt", "updatedAt"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Certificado digital emitido após aprovação na prova formal.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "validationCode": { "type": "string", "maxLength": 40 },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "studentName": { "type": "string", "maxLength": 120 },
+        "courseId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseTitle": { "type": "string", "maxLength": 180 },
+        "nrCode": { "type": "string", "maxLength": 20 },
+        "workloadHours": { "type": "number" },
+        "validityMonths": { "type": "number" },
+        "instructorName": { "type": "string", "maxLength": 120 },
+        "instructorRole": { "type": "string", "maxLength": 120 },
+        "instructorRegistry": { "type": "string", "maxLength": 80 },
+        "score": { "type": "number" },
+        "pdfUrl": { "type": "string", "maxLength": 1000 },
+        "issuedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["valid", "revoked"], "maxLength": 20 }
+      },
+      "required": ["id", "validationCode", "userId", "studentName", "courseId", "courseTitle", "nrCode", "workloadHours", "validityMonths", "instructorName", "score", "pdfUrl", "issuedAt", "status"]
+    },
+    "CorporateQuote": {
+      "title": "CorporateQuote",
+      "description": "Solicitação de orçamento corporativo para turmas empresariais.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "companyName": { "type": "string", "maxLength": 160 },
+        "cnpj": { "type": "string", "maxLength": 30 },
+        "contactName": { "type": "string", "maxLength": 120 },
+        "contactEmail": { "type": "string", "maxLength": 160 },
+        "contactPhone": { "type": "string", "maxLength": 40 },
+        "coursesInterest": { "type": "array" },
+        "employeeCount": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["new", "contacted", "closed"], "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyName", "contactName", "contactEmail", "contactPhone", "coursesInterest", "employeeCount", "status", "createdAt"]
+    },
+    "PublicSettings": {
+      "title": "PublicSettings",
+      "description": "Configurações institucionais, textos do site e modelo de certificado.",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string", "maxLength": 120 },
+        "cnpj": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 160 },
+        "phone": { "type": "string", "maxLength": 40 },
+        "address": { "type": "string", "maxLength": 240 },
+        "heroTitle": { "type": "string", "maxLength": 200 },
+        "heroSubtitle": { "type": "string", "maxLength": 500 },
+        "footerNote": { "type": "string", "maxLength": 400 },
+        "certificateTemplateHeader": { "type": "string", "maxLength": 200 },
+        "certificateTemplateBody": { "type": "string", "maxLength": 1500 },
+        "defaultInstructorName": { "type": "string", "maxLength": 120 },
+        "defaultInstructorRole": { "type": "string", "maxLength": 120 },
+        "defaultInstructorRegistry": { "type": "string", "maxLength": 80 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["companyName", "email", "heroTitle", "heroSubtitle", "updatedAt"]
+    },
+    "IntegrationSettings": {
+      "title": "IntegrationSettings",
+      "description": "Configurações sensíveis de gateway de pagamento (InfinitePay InfiniteTag).",
+      "type": "object",
+      "properties": {
+        "infinitePayHandle": { "type": "string", "maxLength": 80 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["infinitePayHandle", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Perfis privados dos usuários (PII restrita ao dono ou admin)."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminEntry" },
+      "description": "Registro de administradores autorizados."
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Catálogo de cursos de NR e copy das páginas de vendas."
+    },
+    "/courses/{courseId}/modules/{moduleId}": {
+      "schema": { "$ref": "#/entities/CourseModule" },
+      "description": "Módulos e aulas de cada curso."
+    },
+    "/courses/{courseId}/examQuestions/{questionId}": {
+      "schema": { "$ref": "#/entities/ExamQuestion" },
+      "description": "Banco de questões da prova formal de cada curso."
+    },
+    "/funnelOffers/{offerId}": {
+      "schema": { "$ref": "#/entities/FunnelOffer" },
+      "description": "Order Bumps, Upsells pós-compra e Combos promocionais."
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Depoimentos exibidos nas páginas de vendas."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Pedidos de compra, Order Bumps, Combos e transações InfinitePay."
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": { "$ref": "#/entities/Enrollment" },
+      "description": "Matrículas ativas, progresso e notas de prova dos alunos."
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "#/entities/Certificate" },
+      "description": "Certificados emitidos e verificáveis publicamente pelo código."
+    },
+    "/corporateQuotes/{quoteId}": {
+      "schema": { "$ref": "#/entities/CorporateQuote" },
+      "description": "Orçamentos solicitados por empresas."
+    },
+    "/settings/public": {
+      "schema": { "$ref": "#/entities/PublicSettings" },
+      "description": "Configurações públicas institucionais e modelo de certificado."
+    },
+    "/settings/integrations": {
+      "schema": { "$ref": "#/entities/IntegrationSettings" },
+      "description": "Configurações de integração InfinitePay (apenas admin)."
+    }
+  }
+}
