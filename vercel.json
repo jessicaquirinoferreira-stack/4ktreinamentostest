@@ -1,0 +1,19 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{public/images/logo_4k_treinamentos.png,firebase-applet-config.json}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!api/|assets/|images/|src/assets/|favicon\\.ico).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -206,6 +206,7 @@ export function SafetyDocsSection({
           identifiedRisks: analysis.risks,
           preventiveMeasures: analysis.controls,
           requiredPpes: analysis.ppes,
+          applicableNrs: analysis.applicableNrs,
         }),
       });
       const pdfData = await pdfRes.json();
