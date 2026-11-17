@@ -262,6 +262,32 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["infinitePayHandle", "updatedAt"]
+    },
+    "SafetyDocRequest": {
+      "title": "SafetyDocRequest",
+      "description": "Solicitações e gerações de APR (Análise Preliminar de Risco) e PGR (Programa de Gerenciamento de Riscos).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "docType": { "type": "string", "enum": ["apr", "pgr"], "maxLength": 10 },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "requesterName": { "type": "string", "maxLength": 120 },
+        "requesterEmail": { "type": "string", "maxLength": 160 },
+        "requesterPhone": { "type": "string", "maxLength": 40 },
+        "companyName": { "type": "string", "maxLength": 160 },
+        "cnpj": { "type": "string", "maxLength": 30 },
+        "cnpjCardUrl": { "type": "string", "maxLength": 1000 },
+        "serviceDescription": { "type": "string", "maxLength": 2000 },
+        "workAtHeight": { "type": "boolean" },
+        "equipmentList": { "type": "string", "maxLength": 1000 },
+        "workersInvolved": { "type": "string", "maxLength": 1000 },
+        "aprPdfUrl": { "type": "string", "maxLength": 1000 },
+        "risksDescription": { "type": "string", "maxLength": 3000 },
+        "employeeCount": { "type": "number" },
+        "status": { "type": "string", "enum": ["generated", "pending_review", "completed"], "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "docType", "requesterName", "requesterEmail", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -316,6 +342,10 @@
     "/settings/integrations": {
       "schema": { "$ref": "#/entities/IntegrationSettings" },
       "description": "Configurações de integração InfinitePay (apenas admin)."
+    },
+    "/safetyDocRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/SafetyDocRequest" },
+      "description": "Solicitações e gerações de APR e PGR enviadas por alunos ou empresas."
     }
   }
 }

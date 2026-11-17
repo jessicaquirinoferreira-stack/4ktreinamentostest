@@ -814,6 +814,234 @@ async function startServer() {
     }
   });
 
+  // ---------------------------------------------------------------------------
+  // 5b. Automatic / Semi-Automatic APR PDF Generation
+  // ---------------------------------------------------------------------------
+  app.post('/api/safety-docs/generate-apr', async (req, res) => {
+    try {
+      const {
+        requestId,
+        companyName,
+        requesterName,
+        serviceDescription,
+        workAtHeight,
+        equipmentList,
+        workersInvolved,
+        identifiedRisks,
+        preventiveMeasures,
+        applicableNrs,
+      } = req.body as {
+        requestId?: string;
+        companyName?: string;
+        requesterName?: string;
+        serviceDescription?: string;
+        workAtHeight?: boolean;
+        equipmentList?: string;
+        workersInvolved?: string;
+        identifiedRisks?: string[];
+        preventiveMeasures?: string[];
+        applicableNrs?: string[];
+      };
+
+      if (!serviceDescription || !workersInvolved) {
+        return res.status(400).json({ error: 'Descrição do serviço e colaboradores envolvidos são obrigatórios.' });
+      }
+
+      const sanitizeAscii = (txt: string) =>
+        (txt || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^\x20-\x7E\n]/g, ' ');
+
+      const docId = sanitizeAscii(requestId || `APR-${Date.now()}`);
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
+      const { width, height } = page.getSize();
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      const navy = rgb(0.039, 0.145, 0.251); // #0A2540
+      const amber = rgb(0.961, 0.773, 0.094); // #F5C518
+      const slate = rgb(0.28, 0.33, 0.41);
+      const lightBg = rgb(0.968, 0.976, 0.988);
+
+      // Background & Header Band
+      page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(1, 1, 1) });
+      page.drawRectangle({ x: 0, y: height - 96, width, height: 96, color: navy });
+
+      let titleX = 40;
+      const logoCandidates = [
+        path.resolve(process.cwd(), 'dist/images/logo_4k_treinamentos.png'),
+        path.resolve(process.cwd(), 'public/images/logo_4k_treinamentos.png'),
+        path.resolve(process.cwd(), 'src/assets/images/logo_4k_treinamentos.png'),
+      ];
+      const logoPath = logoCandidates.find((candidate) => fs.existsSync(candidate));
+      if (logoPath) {
+        try {
+          const logoBytes = fs.readFileSync(logoPath);
+          const logoImage = await pdfDoc.embedPng(logoBytes);
+          const logoH = 44;
+          const logoW = (logoImage.width / logoImage.height) * logoH;
+          page.drawImage(logoImage, { x: 36, y: height - 70, width: logoW, height: logoH });
+          titleX = 36 + logoW + 14;
+        } catch {
+          // Fallback silently
+        }
+      }
+
+      page.drawText('ANALISE PRELIMINAR DE RISCO (APR)', {
+        x: titleX,
+        y: height - 44,
+        size: 14,
+        font: fontBold,
+        color: amber,
+      });
+      page.drawText('4k Treinamentos · Documentacao Tecnica de Seguranca do Trabalho', {
+        x: titleX,
+        y: height - 62,
+        size: 9,
+        font: fontRegular,
+        color: rgb(0.85, 0.88, 0.92),
+      });
+      page.drawText(`CODIGO: ${docId}  |  EMISSAO: ${new Date().toLocaleDateString('pt-BR')}`, {
+        x: titleX,
+        y: height - 78,
+        size: 8,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+
+      let cursorY = height - 122;
+      const margin = 36;
+      const contentW = width - margin * 2;
+
+      const wrapText = (text: string, maxWidth: number, fontSize: number, font = fontRegular) => {
+        const words = sanitizeAscii(text).replace(/\n+/g, ' ').split(/\s+/).filter(Boolean);
+        const lines: string[] = [];
+        let cur = '';
+        for (const w of words) {
+          const cand = cur ? `${cur} ${w}` : w;
+          if (font.widthOfTextAtSize(cand, fontSize) <= maxWidth) {
+            cur = cand;
+          } else {
+            if (cur) lines.push(cur);
+            cur = w;
+          }
+        }
+        if (cur) lines.push(cur);
+        return lines;
+      };
+
+      const drawSectionBox = (heading: string, lines: string[], accentBg = false) => {
+        const boxH = 26 + Math.max(1, lines.length) * 14 + 10;
+        if (cursorY - boxH < 90) return;
+        page.drawRectangle({
+          x: margin,
+          y: cursorY - boxH,
+          width: contentW,
+          height: boxH,
+          color: accentBg ? lightBg : rgb(1, 1, 1),
+          borderColor: rgb(0.84, 0.87, 0.91),
+          borderWidth: 1,
+        });
+        page.drawText(sanitizeAscii(heading).toUpperCase(), {
+          x: margin + 12,
+          y: cursorY - 18,
+          size: 8.5,
+          font: fontBold,
+          color: navy,
+        });
+        lines.forEach((line, idx) => {
+          page.drawText(line, {
+            x: margin + 12,
+            y: cursorY - 35 - idx * 14,
+            size: 9.5,
+            font: fontRegular,
+            color: slate,
+          });
+        });
+        cursorY -= boxH + 12;
+      };
+
+      drawSectionBox(
+        '1. Identificacao da Atividade e Responsaveis',
+        [
+          `Empresa / Solicitante: ${sanitizeAscii(companyName || requesterName || 'Nao informado')} (Resp: ${sanitizeAscii(requesterName || '-')})`,
+          `Trabalho em Altura (> 2,00m - NR-35): ${workAtHeight ? 'SIM - Exige cinto paraquedista, linha de vida e PT' : 'NAO'}`,
+          `Normas Aplicaveis: ${sanitizeAscii((applicableNrs && applicableNrs.length ? applicableNrs : ['NR-01', 'NR-06']).join(', '))}`,
+        ],
+        true
+      );
+
+      drawSectionBox(
+        '2. Descricao do Servico Executado',
+        wrapText(serviceDescription, contentW - 24, 9.5).slice(0, 6)
+      );
+
+      drawSectionBox(
+        '3. Equipamentos, Ferramentas e EPIs Relacionados',
+        wrapText(equipmentList || 'EPIs basicos (capacete, oculos, botina e luvas conforme NR-06).', contentW - 24, 9.5).slice(0, 4),
+        true
+      );
+
+      drawSectionBox(
+        '4. Riscos Identificados Automaticamente',
+        (identifiedRisks && identifiedRisks.length > 0 ? identifiedRisks : ['Riscos mecanicos, ergonomicos e operacionais inerentes a tarefa.'])
+          .slice(0, 5)
+          .flatMap((r) => wrapText(`• ${r}`, contentW - 24, 9.5))
+          .slice(0, 8)
+      );
+
+      drawSectionBox(
+        '5. Medidas Preventivas e Controles Obrigatorios',
+        (preventiveMeasures && preventiveMeasures.length > 0
+          ? preventiveMeasures
+          : ['Inspecao previa de ferramentas e uso integral de EPIs com CA ativo.'])
+          .slice(0, 6)
+          .flatMap((m) => wrapText(`• ${m}`, contentW - 24, 9.5))
+          .slice(0, 9),
+        true
+      );
+
+      drawSectionBox(
+        '6. Equipe Envolvida e Ciencia de Execucao',
+        wrapText(`Colaboradores: ${workersInvolved}`, contentW - 24, 9.5).slice(0, 4)
+      );
+
+      // Footer Signatures
+      const sigY = 58;
+      page.drawLine({ start: { x: margin, y: sigY + 18 }, end: { x: 270, y: sigY + 18 }, thickness: 1, color: navy });
+      page.drawText('Responsavel pela Liberacao / Lideranca', { x: margin, y: sigY + 5, size: 8.5, font: fontBold, color: navy });
+      page.drawLine({ start: { x: 325, y: sigY + 18 }, end: { x: width - margin, y: sigY + 18 }, thickness: 1, color: navy });
+      page.drawText('Ciencia dos Colaboradores Executantes', { x: 325, y: sigY + 5, size: 8.5, font: fontBold, color: navy });
+      page.drawText('Documento gerado via 4k Treinamentos · Valide sua equipe e emita certificados em 4ktreinamentos', {
+        x: margin,
+        y: 26,
+        size: 7.5,
+        font: fontRegular,
+        color: slate,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const origin = getAppOrigin(req);
+      const stored = await storeToBlobOrLocal(
+        `safety-docs/${docId}.pdf`,
+        Buffer.from(pdfBytes),
+        'application/pdf',
+        origin
+      );
+
+      return res.json({
+        pdfUrl: stored.url,
+        storageProvider: stored.storageProvider,
+        docId,
+      });
+    } catch (error) {
+      console.error('Erro ao gerar APR PDF:', error);
+      return res.status(500).json({ error: 'Falha ao gerar arquivo PDF da APR.' });
+    }
+  });
+
   // Vite middleware in dev or static serving in prod
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

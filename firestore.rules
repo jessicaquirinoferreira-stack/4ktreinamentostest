@@ -251,6 +251,34 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    function isValidSafetyDocRequest(data) {
+      return data.keys().hasAll(['id', 'docType', 'requesterName', 'requesterEmail', 'status', 'createdAt'])
+        && data.keys().hasOnly([
+          'id', 'docType', 'userId', 'requesterName', 'requesterEmail', 'requesterPhone',
+          'companyName', 'cnpj', 'cnpjCardUrl',
+          'serviceDescription', 'workAtHeight', 'equipmentList', 'workersInvolved', 'aprPdfUrl',
+          'risksDescription', 'employeeCount', 'status', 'createdAt'
+        ])
+        && isValidId(data.id)
+        && data.docType in ['apr', 'pgr']
+        && (!('userId' in data) || isValidId(data.userId))
+        && data.requesterName is string && data.requesterName.size() > 0 && data.requesterName.size() <= 120
+        && data.requesterEmail is string && data.requesterEmail.size() > 0 && data.requesterEmail.size() <= 160
+        && (!('requesterPhone' in data) || (data.requesterPhone is string && data.requesterPhone.size() <= 40))
+        && (!('companyName' in data) || (data.companyName is string && data.companyName.size() <= 160))
+        && (!('cnpj' in data) || (data.cnpj is string && data.cnpj.size() <= 30))
+        && (!('cnpjCardUrl' in data) || (data.cnpjCardUrl is string && data.cnpjCardUrl.size() <= 1000))
+        && (!('serviceDescription' in data) || (data.serviceDescription is string && data.serviceDescription.size() <= 2000))
+        && (!('workAtHeight' in data) || data.workAtHeight is bool)
+        && (!('equipmentList' in data) || (data.equipmentList is string && data.equipmentList.size() <= 1000))
+        && (!('workersInvolved' in data) || (data.workersInvolved is string && data.workersInvolved.size() <= 1000))
+        && (!('aprPdfUrl' in data) || (data.aprPdfUrl is string && data.aprPdfUrl.size() <= 1000))
+        && (!('risksDescription' in data) || (data.risksDescription is string && data.risksDescription.size() <= 3000))
+        && (!('employeeCount' in data) || (data.employeeCount is number && data.employeeCount > 0 && data.employeeCount <= 100000))
+        && data.status in ['generated', 'pending_review', 'completed']
+        && data.createdAt is timestamp;
+    }
+
     function isValidPublicSettings(data) {
       return data.keys().hasAll(['companyName', 'email', 'heroTitle', 'heroSubtitle', 'updatedAt'])
         && data.keys().hasOnly(['companyName', 'cnpj', 'email', 'phone', 'address', 'heroTitle', 'heroSubtitle', 'footerNote', 'certificateTemplateHeader', 'certificateTemplateBody', 'defaultInstructorName', 'defaultInstructorRole', 'defaultInstructorRegistry', 'updatedAt'])
@@ -407,7 +435,7 @@ service cloud.firestore {
         && incoming().updatedAt == request.time
         && (
           exists(/databases/$(database)/documents/courses/$(incoming().courseId)) ||
-          incoming().courseId in ['nr-35', 'nr-33', 'nr-12', 'nr-18', 'nr-06'] ||
+          incoming().courseId in ['nr-06', 'nr-10', 'nr-11', 'nr-12', 'nr-18', 'nr-20', 'nr-23', 'nr-33', 'nr-35'] ||
           ('comboId' in incoming() && exists(/databases/$(database)/documents/funnelOffers/$(incoming().comboId)))
         );
       allow update: if isValidId(orderId)
@@ -508,6 +536,24 @@ service cloud.firestore {
       allow create, update: if isAdmin()
         && isValidIntegrationSettings(incoming())
         && incoming().updatedAt == request.time;
+    }
+
+    // Technical Safety Documents (APR & PGR)
+    match /safetyDocRequests/{requestId} {
+      allow get: if isValidId(requestId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isValidId(requestId)
+        && isValidSafetyDocRequest(incoming())
+        && incoming().id == requestId
+        && incoming().status in ['generated', 'pending_review']
+        && incoming().createdAt == request.time
+        && (!('userId' in incoming()) || (isSignedIn() && incoming().userId == request.auth.uid));
+      allow update: if isValidId(requestId)
+        && isAdmin()
+        && isValidSafetyDocRequest(incoming())
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isValidId(requestId) && isAdmin();
     }
   }
 }
