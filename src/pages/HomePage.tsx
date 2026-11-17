@@ -15,6 +15,8 @@ import {
 import { toast } from 'sonner';
 import { CertificateSpecimen } from '../components/CertificateSpecimen';
 import { CourseCard } from '../components/CourseCard';
+import { SafetyDocsSection } from '../components/SafetyDocsSection';
+import { useAuth } from '../context/AuthContext';
 import {
   CORPORATE_TEAM_URL,
   formatCurrencyBRL,
@@ -31,13 +33,13 @@ interface HomePageProps {
   loadingCourses: boolean;
 }
 
-type CategoryFilter = 'all' | 'altura' | 'industria' | 'construcao';
+type CategoryFilter = 'all' | 'altura' | 'industria' | 'incendio_obra';
 
 const FILTER_TABS: { id: CategoryFilter; label: string }[] = [
   { id: 'all', label: 'Todas as NRs' },
   { id: 'altura', label: 'Altura & Confinado' },
-  { id: 'industria', label: 'Indústria & Máquinas' },
-  { id: 'construcao', label: 'Construção & EPI' },
+  { id: 'industria', label: 'Elétrica, Cargas & Máquinas' },
+  { id: 'incendio_obra', label: 'Incêndio, Obra & EPI' },
 ];
 
 const STEPS = [
@@ -80,6 +82,16 @@ const COMPLIANCE_ROWS = [
     evidence: 'Monitoramento atmosférico (O2, LEL, CO, H2S), PET e plano de salvamento',
   },
   {
+    norm: 'NR-10 Básico · Eletricidade',
+    requirement: 'Capacitação básica de 40h (Anexo III) para intervenção em instalações elétricas',
+    evidence: 'Medidas de controle, desenergização em 6 etapas, riscos elétricos e resgate',
+  },
+  {
+    norm: 'NR-20 & NR-23 · Inflamáveis e Incêndio',
+    requirement: 'Controle de atmosferas inflamáveis e prevenção/combate a princípios de incêndio',
+    evidence: 'Classificação de fogos (A/B/C/D/K), extintores, ponto de fulgor e plano de emergência',
+  },
+  {
     norm: 'eSocial · Tabela 28 / S-2240',
     requirement: 'Comprovação documental de treinamentos obrigatórios em auditorias',
     evidence: 'Código único de validação em /validar + assinatura técnica CREA/MTE',
@@ -111,6 +123,7 @@ const TESTIMONIALS = [
 ];
 
 export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
+  const { user, profile } = useAuth();
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [combos, setCombos] = useState<FunnelOffer[]>([]);
@@ -123,6 +136,11 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
     fetchTestimonials(undefined, true).then((items) => {
       setTestimonials(items.slice(0, 3));
     });
+    if (window.location.hash === '#documentacao') {
+      setTimeout(() => {
+        document.getElementById('documentacao')?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    }
   }, []);
 
   // Corporate quote form state
@@ -143,8 +161,9 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
       const matchesTab =
         filter === 'all' ||
         (filter === 'altura' && (nr.includes('35') || nr.includes('33'))) ||
-        (filter === 'industria' && (nr.includes('12') || nr.includes('33'))) ||
-        (filter === 'construcao' && (nr.includes('18') || nr.includes('06') || nr.includes('35')));
+        (filter === 'industria' && (nr.includes('10') || nr.includes('11') || nr.includes('12'))) ||
+        (filter === 'incendio_obra' &&
+          (nr.includes('20') || nr.includes('23') || nr.includes('18') || nr.includes('06')));
 
       const q = searchTerm.trim().toLowerCase();
       const matchesQuery =
@@ -251,21 +270,21 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
               {/* Direct NR Quick-Access Strip */}
               <div className="pt-6 border-t border-white/15 space-y-3">
                 <p className="text-xs font-medium text-slate-300">
-                  Acesso direto às principais Normas Regulamentadoras:
+                  Acesso direto às 9 Normas Regulamentadoras disponíveis:
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                  {courses.slice(0, 5).map((c) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {courses.slice(0, 9).map((c) => (
                     <Link
                       key={c.id}
                       to={`/cursos/${c.slug}`}
-                      className="group p-3 bg-[#0F2C59] hover:bg-[#143970] border border-white/10 hover:border-[#F5C518] rounded-lg transition-colors"
+                      className="group p-2.5 bg-[#0F2C59] hover:bg-[#143970] border border-white/10 hover:border-[#F5C518] rounded-lg transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-xs font-bold text-[#F5C518]">{c.nrCode}</span>
                         <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#F5C518] transition-colors" />
                       </div>
-                      <p className="text-xs text-slate-200 mt-1 truncate">{c.title}</p>
-                      <p className="font-mono text-xs font-bold text-white mt-1.5 tabular-nums">
+                      <p className="text-xs text-slate-200 mt-0.5 truncate">{c.title}</p>
+                      <p className="font-mono text-xs font-bold text-white mt-1 tabular-nums">
                         {formatCurrencyBRL(c.priceCents)}
                       </p>
                     </Link>
@@ -607,7 +626,14 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
         </div>
       </section>
 
-      {/* 3. INTERACTIVE CERTIFICATE SPECIMEN (FRONT + BACK) */}
+      {/* 3. SERVIÇOS DE DOCUMENTAÇÃO TÉCNICA (APR E PGR) */}
+      <SafetyDocsSection
+        userId={user?.uid}
+        defaultName={profile?.name || user?.displayName || ''}
+        defaultEmail={user?.email || ''}
+      />
+
+      {/* 4. INTERACTIVE CERTIFICATE SPECIMEN (FRONT + BACK) */}
       <CertificateSpecimen courses={courses} settings={settings} />
 
       {/* 4. COMO FUNCIONA EM 4 ETAPAS */}
@@ -891,7 +917,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">NRs desejadas *</label>
                     <div className="flex flex-wrap gap-2">
-                      {['NR-06', 'NR-12', 'NR-18', 'NR-33', 'NR-35'].map((nr) => {
+                      {['NR-06', 'NR-10', 'NR-11', 'NR-12', 'NR-18', 'NR-20', 'NR-23', 'NR-33', 'NR-35'].map((nr) => {
                         const active = selectedNrs.includes(nr);
                         return (
                           <button

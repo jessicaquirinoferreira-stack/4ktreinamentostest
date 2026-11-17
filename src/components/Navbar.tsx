@@ -63,7 +63,7 @@ export function Navbar() {
         </Link>
 
         {/* Zone 2: Clean Single-Line Navigation */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-600">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-6 text-sm font-medium text-slate-600">
           <button
             type="button"
             onClick={handleGoHome}
@@ -77,6 +77,13 @@ export function Navbar() {
             className="hover:text-[#0A2540] transition-colors underline-offset-8 hover:underline whitespace-nowrap shrink-0 cursor-pointer"
           >
             Cursos
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSectionNav('documentacao')}
+            className="hover:text-[#0A2540] transition-colors underline-offset-8 hover:underline whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            APR & PGR
           </button>
           <button
             type="button"
@@ -144,6 +151,13 @@ export function Navbar() {
             className="block w-full text-left px-3 py-2.5 min-h-[44px] text-sm font-medium text-[#0A2540] rounded-lg hover:bg-slate-50"
           >
             Cursos
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSectionNav('documentacao')}
+            className="block w-full text-left px-3 py-2.5 min-h-[44px] text-sm font-medium text-[#0A2540] rounded-lg hover:bg-slate-50"
+          >
+            APR & PGR Online
           </button>
           <button
             type="button"

@@ -11,21 +11,29 @@ import officialLogoImg from '../assets/images/logo_4k_treinamentos.png';
 import heroBrandedImg from '../assets/images/hero_4k_branded_1794853557660.jpg';
 import instructorBrandedImg from '../assets/images/instructor_4k_branded_1794853558864.jpg';
 import corporateBrandedImg from '../assets/images/corporate_4k_branded_1794853562586.jpg';
-import nr35CoverImg from '../assets/images/nr35_4k_branded_1794853562294.jpg';
-import nr33CoverImg from '../assets/images/nr33_4k_branded_1794853561553.jpg';
+import nr06CoverImg from '../assets/images/nr06_4k_branded_1794853562892.jpg';
+import nr10CoverImg from '../assets/images/nr10_4k_branded_1794918469807.jpg';
+import nr11CoverImg from '../assets/images/nr11_4k_branded_1794918469511.jpg';
 import nr12CoverImg from '../assets/images/nr12_4k_branded_1794853565420.jpg';
 import nr18CoverImg from '../assets/images/nr18_4k_branded_1794853564817.jpg';
-import nr06CoverImg from '../assets/images/nr06_4k_branded_1794853562892.jpg';
+import nr20CoverImg from '../assets/images/nr20_4k_branded_1794918469472.jpg';
+import nr23CoverImg from '../assets/images/nr23_4k_branded_1794918470650.jpg';
+import nr33CoverImg from '../assets/images/nr33_4k_branded_1794853561553.jpg';
+import nr35CoverImg from '../assets/images/nr35_4k_branded_1794853562294.jpg';
 
 export const OFFICIAL_LOGO_URL = officialLogoImg;
 export const HERO_IMAGE_URL = heroBrandedImg;
 export const INSTRUCTOR_PORTRAIT_URL = instructorBrandedImg;
 export const CORPORATE_TEAM_URL = corporateBrandedImg;
-export const NR35_COVER_URL = nr35CoverImg;
-export const NR33_COVER_URL = nr33CoverImg;
+export const NR06_COVER_URL = nr06CoverImg;
+export const NR10_COVER_URL = nr10CoverImg;
+export const NR11_COVER_URL = nr11CoverImg;
 export const NR12_COVER_URL = nr12CoverImg;
 export const NR18_COVER_URL = nr18CoverImg;
-export const NR06_COVER_URL = nr06CoverImg;
+export const NR20_COVER_URL = nr20CoverImg;
+export const NR23_COVER_URL = nr23CoverImg;
+export const NR33_COVER_URL = nr33CoverImg;
+export const NR35_COVER_URL = nr35CoverImg;
 
 export const DEFAULT_PUBLIC_SETTINGS: Omit<PublicSettings, 'updatedAt'> = {
   companyName: '4k Treinamentos',
@@ -35,7 +43,7 @@ export const DEFAULT_PUBLIC_SETTINGS: Omit<PublicSettings, 'updatedAt'> = {
   address: 'Av. Paulista, 1439 · Conj. 82 · Bela Vista, São Paulo - SP',
   heroTitle: 'Certificados de NR válidos em todo o Brasil',
   heroSubtitle:
-    'Capacitação online em Segurança do Trabalho com conteúdo técnico atualizado, prova formal de aproveitamento e certificado assinado por profissional habilitado.',
+    'Capacitação online em Segurança do Trabalho (NR-06, NR-10, NR-11, NR-12, NR-18, NR-20, NR-23, NR-33 e NR-35) com conteúdo técnico atualizado, prova formal e certificado assinado.',
   footerNote:
     '4k Treinamentos LTDA · Treinamentos em Normas Regulamentadoras conforme diretrizes da Portaria MTP nº 672/2021 e NR-01.',
   certificateTemplateHeader: 'CERTIFICADO DE CONCLUSÃO E APROVAÇÃO',
@@ -55,6 +63,1321 @@ export interface SeedCourseBundle {
 export const SEED_COURSES: SeedCourseBundle[] = [
   {
     course: {
+      id: 'nr-06',
+      slug: 'nr-06',
+      nrCode: 'NR-06',
+      title: 'Equipamentos de Proteção Individual (EPI)',
+      salesHeadline:
+        'Comprove sua capacitação em NR-06 (EPIs) em poucas horas com certificado reconhecido em todo o país',
+      salesSubheadline:
+        'Entenda Certificado de Aprovação (CA), responsabilidades legais, seleção técnica por risco, conservação e higienização dos EPIs obrigatórios com emissão imediata de PDF.',
+      promoTag: 'Mais acessível · Obrigatório em quase todas as integrações',
+      originalPriceCents: 11900,
+      priceCents: 6900,
+      enrolledCount: 3190,
+      ratingAverage: 4.9,
+      ratingCount: 512,
+      guaranteeDays: 7,
+      shortDescription:
+        'Seleção técnica, Certificado de Aprovação (CA), guarda, higienização e responsabilidades legais sobre o uso de EPIs.',
+      fullDescription:
+        'O curso de NR-06 orienta trabalhadores, encarregados e técnicos sobre a correta indicação, uso, conservação e substituição dos Equipamentos de Proteção Individual conforme atualização vigente da norma. Aborda validade do Certificado de Aprovação (CA), obrigações do empregador e do empregado, ficha de entrega eletrônica/física e proteção para cabeça, olhos, audição, vias respiratórias, tronco, mãos e pés.',
+      workloadHours: 4,
+      certificateValidityMonths: 24,
+      targetAudience:
+        'Todos os trabalhadores da indústria, construção civil, logística, elétrica, serviços gerais, almoxarifes e profissionais de SESMT/CIPA.',
+      notForAudience: [
+        'Quem não atua ou não pretende atuar em ambientes sujeitos a requisitos de Segurança e Saúde no Trabalho',
+      ],
+      includedBonuses: [
+        'Guia rápido de consulta de Certificado de Aprovação (CA) ativo',
+        'Modelo pronto de Ficha de Controle, Entrega e Substituição de EPI',
+      ],
+      learningOutcomes: [
+        'Verificar a autenticidade e validade do Certificado de Aprovação (CA)',
+        'Distinguir responsabilidades do empregador, do trabalhador e do fabricante',
+        'Selecionar o EPI adequado para riscos físicos, químicos, biológicos e mecânicos',
+        'Executar corretamente a higienização, guarda periódica e descarte de EPIs danificados',
+      ],
+      faq: [
+        {
+          question: 'A empresa pode cobrar do funcionário pelo EPI fornecido?',
+          answer:
+            'Não. A NR-06 determina que o empregador deve fornecer o EPI gratuitamente ao empregado, em perfeito estado de conservação e funcionamento.',
+        },
+        {
+          question: 'O certificado de NR-06 tem validade para ficha de integração?',
+          answer:
+            'Sim. Inclui carga horária de 4h, conteúdo programático completo e código verificável em /validar.',
+        },
+      ],
+      coverImageUrl: NR06_COVER_URL,
+      bannerImageUrl: NR06_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 1,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-06-m1',
+        courseId: 'nr-06',
+        title: 'Módulo 1 · Conceitos, CA e Responsabilidades na NR-06',
+        description: 'Base legal, Certificado de Aprovação (CA) e deveres de empregador e empregado.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr06-l1',
+            title: 'Certificado de Aprovação (CA) e Obrigações Legais',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Considera-se Equipamento de Proteção Individual (EPI) todo dispositivo ou produto de uso individual utilizado pelo trabalhador, destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho.\n\nTodo EPI comercializado ou utilizado no Brasil deve possuir Certificado de Aprovação (CA) emitido pelo órgão nacional competente.\n\nCabe ao empregador:\n• Adquirir o EPI adequado ao risco de cada atividade.\n• Exigir seu uso e fornecer gratuitamente ao trabalhador.\n• Orientar e treinar o trabalhador sobre o uso adequado, guarda e conservação.\n• Substituir imediatamente quando danificado ou extraviado.\n• Registrar o fornecimento ao empregado (ficha de EPI física ou eletrônica).\n\nCabe ao empregado:\n• Usar o EPI apenas para a finalidade a que se destina.\n• Responsabilizar-se pela guarda e conservação.\n• Comunicar ao empregador qualquer alteração que o torne impróprio para uso.',
+          },
+        ],
+      },
+      {
+        id: 'nr-06-m2',
+        courseId: 'nr-06',
+        title: 'Módulo 2 · Seleção Técnica por Risco e Conservação',
+        description: 'Classificação de EPIs por região anatômica, higienização e vida útil.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr06-l2',
+            title: 'Proteção por Região Anatômica, Guarda e Descarte',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'A escolha do EPI deve seguir a hierarquia de controles do PGR/NR-01: primeiro adotam-se medidas coletivas (EPC) e administrativas; quando inviáveis ou complementares, especifica-se o EPI:\n\n• Cabeça: capacete classe A (impactos) ou classe B (impactos e tensão elétrica até 20 kV) com jugular.\n• Olhos e Face: óculos de segurança incolor/fumê, ampla visão contra respingos químicos ou protetor facial.\n• Auditiva: protetores tipo plug de inserção ou concha, compatíveis com a atenuação (NRRsf) exigida.\n• Respiratória: respiradores PFF1, PFF2, PFF3 ou semifaciais com filtros químicos/combinados (PPR).\n• Mãos e Pés: luvas mecânicas, nitrílicas, térmicas ou isolantes (NR-10) e calçados com biqueira composite/aço e solado isolante.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr06-q1',
+        courseId: 'nr-06',
+        order: 1,
+        prompt: 'O que garante que um EPI foi testado e autorizado para comercialização e uso no Brasil?',
+        options: [
+          'A cor do equipamento.',
+          'O Certificado de Aprovação (CA) válido gravado no equipamento.',
+          'Apenas o logotipo da empresa compradora.',
+          'Um selo adesivo da transportadora.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr06-q2',
+        courseId: 'nr-06',
+        order: 2,
+        prompt: 'De quem é a responsabilidade pelo fornecimento gratuito e substituição imediata de EPI danificado?',
+        options: [
+          'Do sindicato da categoria.',
+          'Do próprio empregado, mediante desconto em folha.',
+          'Do empregador.',
+          'Da prefeitura municipal.',
+        ],
+        correctIndex: 2,
+      },
+      {
+        id: 'nr06-q3',
+        courseId: 'nr-06',
+        order: 3,
+        prompt: 'Qual é uma obrigação legal do empregado em relação ao EPI segundo a NR-06?',
+        options: [
+          'Comprar o próprio capacete e botina na admissão.',
+          'Utilizá-lo apenas quando houver fiscalização na obra.',
+          'Responsabilizar-se pela guarda e conservação e comunicar qualquer dano que o torne impróprio para uso.',
+          'Alterar o formato do EPI para maior conforto térmico.',
+        ],
+        correctIndex: 2,
+      },
+      {
+        id: 'nr06-q4',
+        courseId: 'nr-06',
+        order: 4,
+        prompt: 'Qual classe de capacete de segurança oferece proteção adicional contra choques elétricos em alta tensão?',
+        options: [
+          'Capacete Classe B.',
+          'Boné de tecido simples.',
+          'Capacete apenas decorativo sem carneira.',
+          'Protetor auricular tipo plug.',
+        ],
+        correctIndex: 0,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-10',
+      slug: 'nr-10',
+      nrCode: 'NR-10 Básico',
+      title: 'Segurança em Instalações e Serviços com Eletricidade',
+      salesHeadline:
+        'Conquiste seu Certificado NR-10 Básico (40h) conforme Anexo III e atue com segurança em instalações elétricas',
+      salesSubheadline:
+        'Treinamento teórico completo de 40h cobrindo riscos elétricos, arco voltaico, os 6 passos de desenergização, Zonas de Risco/Controlada, EPIs/EPCs isolantes e primeiros socorros.',
+      promoTag: 'Carga horária oficial de 40h · Anexo III da NR-10',
+      originalPriceCents: 25900,
+      priceCents: 17900,
+      enrolledCount: 2840,
+      ratingAverage: 4.9,
+      ratingCount: 465,
+      guaranteeDays: 7,
+      shortDescription:
+        'Curso Básico de 40h (Anexo III da NR-10): riscos elétricos, desenergização, EPCs/EPIs isolantes, rotinas e emergências.',
+      fullDescription:
+        'A NR-10 estabelece os requisitos e condições mínimas objetivando a implementação de medidas de controle e sistemas preventivos para garantir a segurança e a saúde dos trabalhadores que, direta ou indiretamente, interajam em instalações elétricas e serviços com eletricidade. Este Curso Básico (40 horas, conforme Anexo III) abrange choque elétrico, arco voltaico, aterramento, os 6 procedimentos obrigatórios de desenergização, Zona de Risco e Zona Controlada, vestimenta FR/ATP, ferramentas isoladas, proteção contra incêndio e noções de RCP.',
+      workloadHours: 40,
+      certificateValidityMonths: 24,
+      targetAudience:
+        'Eletricistas industriais e prediais, técnicos em eletrotécnica, automação, refrigeração, instaladores solares, mantenedores e engenheiros eletricistas.',
+      notForAudience: [
+        'Atividades exclusivas no Sistema Elétrico de Potência (SEP) acima de 1000 VCA sem curso Complementar SEP',
+        'Quem busca apenas certificado sem realizar avaliação formal de aproveitamento',
+      ],
+      includedBonuses: [
+        'Checklist dos 6 Passos Obrigatórios da Desenergização Elétrica (item 10.5.1)',
+        'Tabela de Raios das Zonas de Risco (Zr) e Zona Controlada (Zc) por Nível de Tensão',
+        'Guia de Seleção de Luvas Isolantes (Classes 00 a 4) e Vestimenta ATPV',
+      ],
+      learningOutcomes: [
+        'Identificar riscos de choque elétrico, queimaduras por arco voltaico e campos eletromagnéticos',
+        'Executar rigorosamente a sequência dos 6 passos de desenergização e bloqueio LOTO',
+        'Delimitar Zona de Risco, Zona Controlada e Zona Livre em painéis e subestações',
+        'Aplicar medidas de controle, aterramento temporário, combate a incêndio elétrico e primeiros socorros',
+      ],
+      faq: [
+        {
+          question: 'A carga horária deste curso segue o Anexo III da NR-10?',
+          answer:
+            'Sim. O Curso Básico de NR-10 da 4k Treinamentos possui carga horária integral de 40 horas, atendendo ao conteúdo programático mínimo do Anexo III da NR-10.',
+        },
+        {
+          question: 'Qual a validade do certificado NR-10 Básico?',
+          answer:
+            'A reciclagem da NR-10 deve ocorrer bienalmente (a cada 24 meses) ou sempre que houver troca de função, retorno de afastamento superior a 3 meses ou modificações significativas nas instalações.',
+        },
+        {
+          question: 'Este curso habilita o profissional para o SEP (Alta Tensão)?',
+          answer:
+            'Este é o Curso Básico de 40h (pré-requisito obrigatório para qualquer trabalho em eletricidade). Para atuar no Sistema Elétrico de Potência (SEP), é exigido também o módulo complementar específico.',
+        },
+      ],
+      coverImageUrl: NR10_COVER_URL,
+      bannerImageUrl: NR10_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 2,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-10-m1',
+        courseId: 'nr-10',
+        title: 'Módulo 1 · Riscos Elétricos, Choque, Arco e Medidas de Controle',
+        description: 'Efeitos da corrente elétrica, arco voltaico, aterramento, seccionamento automático e DR.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr10-l1',
+            title: 'Introdução à NR-10, Choque Elétrico e Arco Voltaico',
+            type: 'text',
+            durationMinutes: 90,
+            order: 1,
+            content:
+              'A Norma Regulamentadora nº 10 aplica-se às fases de geração, transmissão, distribuição e consumo, incluindo projeto, construção, montagem, operação e manutenção das instalações elétricas.\n\nPrincipais riscos:\n• Choque Elétrico: passagem da corrente elétrica pelo corpo humano, podendo provocar tetanização muscular, parada respiratória, fibrilação ventricular e queimaduras internas.\n• Arco Voltaico (Arc Flash): descarga elétrica pelo ar ionizado com temperaturas superiores a 19.000 °C, projeção de metal fundido e onda de choque acústico/mecânico.\n• Quedas em altura ou projeção decorrentes de contração involuntária.\n\nA hierarquia de controle exige, prioritariamente, a desenergização elétrica; na impossibilidade, o emprego de tensão de segurança (extra-baixa tensão) e isolação de partes vivas.',
+          },
+          {
+            id: 'nr10-l2',
+            title: 'Aterramento Elétrico, Equipotencialização e Dispositivo DR',
+            type: 'text',
+            durationMinutes: 90,
+            order: 2,
+            content:
+              'O aterramento de proteção (PE) e a equipotencialização garantem que massas metálicas acessíveis não assumam potenciais perigosos em caso de falha de isolação.\n\nEsquemas de aterramento segundo ABNT NBR 5410 (TN-S, TN-C, TT, IT) determinam o comportamento da corrente de falta e a atuação de dispositivos de proteção.\n\nO Dispositivo Diferencial Residual (DR) de alta sensibilidade (corrente diferencial nominal ≤ 30 mA) interrompe o circuito em milissegundos ao detectar fuga de corrente à terra, prevenindo choques letais.',
+          },
+        ],
+      },
+      {
+        id: 'nr-10-m2',
+        courseId: 'nr-10',
+        title: 'Módulo 2 · Desenergização (6 Passos), Bloqueio e Zonas de Segurança',
+        description: 'Sequência obrigatória para considerar uma instalação desenergizada e distâncias de segurança.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr10-l3',
+            title: 'Os 6 Procedimentos Obrigatórios de Desenergização (Item 10.5.1)',
+            type: 'text',
+            durationMinutes: 100,
+            order: 1,
+            content:
+              'Somente serão consideradas desenergizadas as instalações elétricas liberadas para trabalho mediante os procedimentos apropriados, obedecida rigorosamente a seguinte sequência:\n\n1. Seccionamento: abertura completa do dispositivo de manobra garantindo afastamento físico.\n2. Impedimento de reenergização: travamento mecânico com cadeados individuais e etiquetas de bloqueio (LOTO).\n3. Constatação da ausência de tensão: medição com detector/multímetro calibrado CAT III/IV testado antes e depois.\n4. Instalação de aterramento temporário com equipotencialização dos condutores das fases.\n5. Proteção dos elementos energizados existentes na zona controlada.\n6. Instalação da sinalização de impedimento de reenergização.\n\nPara reenergizar o circuito após o término do serviço, executa-se a sequência inversa após retirada de todas as ferramentas e confirmação da saída dos trabalhadores.',
+          },
+          {
+            id: 'nr10-l4',
+            title: 'Zona de Risco, Zona Controlada e Responsabilidades (Habilitado x Autorizado)',
+            type: 'text',
+            durationMinutes: 80,
+            order: 2,
+            content:
+              'A NR-10 define raios de delimitação ao redor de pontos energizados não isolados conforme a tensão nominal (Anexo II):\n• Zona de Risco (Zr): entorno de parte condutora energizada, não segregada, acessível inclusive acidentalmente, onde somente trabalhadores autorizados podem ingressar com técnicas, ferramentas e EPIs específicos.\n• Zona Controlada (Zc): entorno da Zona de Risco, acessível apenas a trabalhadores autorizados.\n• Zona Livre: área externa à Zc.\n\nQualificação e Autorização:\n• Qualificado: concluiu curso específico na área elétrica reconhecido pelo Sistema Oficial de Ensino.\n• Legalmente Habilitado: qualificado com registro ativo no competente conselho de classe (CREA/CFT).\n• Capacitado: recebeu capacitação sob orientação e responsabilidade de profissional habilitado e autorizado.\n• Autorizado: qualificado/capacitado/habilitado com anuência formal da empresa e exames médicos (ASO) compatíveis.',
+          },
+        ],
+      },
+      {
+        id: 'nr-10-m3',
+        courseId: 'nr-10',
+        title: 'Módulo 3 · EPIs, EPCs Isolantes, Incêndio Elétrico e Primeiros Socorros',
+        description: 'Vestimenta retardante à chama (ATPV), luvas isolantes, extintores classe C e RCP.',
+        order: 3,
+        lessons: [
+          {
+            id: 'nr10-l5',
+            title: 'Vestimenta ATPV, Luvas Isolantes e Ferramentas CAT III/IV',
+            type: 'text',
+            durationMinutes: 90,
+            order: 1,
+            content:
+              'Trabalhadores expostos a risco de arco elétrico devem usar vestimentas condutivas/retardantes à chama com classificação ATPV compatível com a energia incidente calculada (proibido uso de adornos metálicos, relógios, anéis e tecidos sintéticos comuns como poliéster puro).\n\nLuvas isolantes de borracha são classificadas por tensão máxima de uso (Classe 00 até 500V, Classe 0 até 1.000V, Classes 1 a 4 para média/alta tensão) e devem ser inspecionadas por ensaio de inflagem antes do uso e protegidas por luva de cobertura em vaqueta.\n\nEm incêndios envolvendo equipamentos energizados (Classe C), utilizam-se agentes extintores não condutores de eletricidade (CO2 ou Pó Químico Seco), jamais água ou espuma comum enquanto houver tensão.',
+          },
+          {
+            id: 'nr10-l6',
+            title: 'Atendimento a Acidentados: Remoção Segura e Suporte Básico de Vida',
+            type: 'text',
+            durationMinutes: 90,
+            order: 2,
+            content:
+              'Ao presenciar uma vítima de choque elétrico:\n1. NUNCA toque diretamente na vítima antes de desligar a fonte de energia ou afastá-la com bastão isolante seco/certificado.\n2. Acione imediatamente o serviço médico de emergência (SAMU 192 / Bombeiros 193).\n3. Avalie responsividade e respiração; na ausência de sinais vitais, inicie imediatamente manobras de Reanimação Cardiopulmonar (RCP) com compressões torácicas contínuas e utilize Desfibrilador Externo Automático (DEA) assim que disponível.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr10-q1',
+        courseId: 'nr-10',
+        order: 1,
+        prompt: 'Qual é a primeira etapa obrigatória na sequência de desenergização elétrica prevista no item 10.5.1 da NR-10?',
+        options: [
+          'Instalar aterramento temporário imediatamente.',
+          'Seccionamento do circuito.',
+          'Retirar os cadeados dos disjuntores.',
+          'Lavar o painel com água desmineralizada.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr10-q2',
+        courseId: 'nr-10',
+        order: 2,
+        prompt: 'Por que a NR-10 proíbe o uso de adornos pessoais (anéis, pulseiras, relógios) e roupas sintéticas comuns em serviços elétricos?',
+        options: [
+          'Apenas por padrão estético da empresa.',
+          'Porque metais conduzem corrente e tecidos sintéticos derretem e aderem à pele durante um arco elétrico.',
+          'Para facilitar a passagem nos corredores estreitos.',
+          'Essa restrição aplica-se apenas a serviços acima de 138 kV.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr10-q3',
+        courseId: 'nr-10',
+        order: 3,
+        prompt: 'Segundo a NR-10, quem é considerado trabalhador "Autorizado"?',
+        options: [
+          'Qualquer funcionário contratado há mais de 6 meses.',
+          'O trabalhador qualificado, habilitado ou capacitado que possua anuência formal da empresa e aptidão médica para atuar nas instalações.',
+          'Apenas o proprietário da empresa contratante.',
+          'Qualquer estagiário de áreas administrativas.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr10-q4',
+        courseId: 'nr-10',
+        order: 4,
+        prompt: 'Em caso de princípio de incêndio em um quadro elétrico energizado (Classe C), qual agente extintor NÃO deve ser utilizado?',
+        options: [
+          'Gás Carbônico (CO2).',
+          'Pó Químico Seco (BC ou ABC).',
+          'Água pressurizada ou espuma mecânica.',
+          'Extintor certificado para Classe C.',
+        ],
+        correctIndex: 2,
+      },
+      {
+        id: 'nr10-q5',
+        courseId: 'nr-10',
+        order: 5,
+        prompt: 'O que garante a proteção da luva isolante de borracha contra perfurações mecânicas durante o manuseio de cabos e barramentos?',
+        options: [
+          'Uso conjunto com luva de cobertura de vaqueta sobreposta.',
+          'Aplicação de graxa na superfície externa.',
+          'Dobrar o punho da luva para dentro.',
+          'Utilizar luvas cirúrgicas por cima.',
+        ],
+        correctIndex: 0,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-11',
+      slug: 'nr-11',
+      nrCode: 'NR-11',
+      title: 'Transporte, Movimentação, Armazenagem e Manuseio de Materiais',
+      salesHeadline:
+        'Capacitação NR-11 completa para operação segura de empilhadeiras, pontes rolantes e movimentação de cargas',
+      salesSubheadline:
+        'Domine o triângulo de estabilidade, centro de gravidade, inspeção diária de equipamentos de içamento, sinalização e regras de armazenagem com certificado válido.',
+      promoTag: 'Logística, Armazéns & Indústria · Acesso imediato',
+      originalPriceCents: 17900,
+      priceCents: 11900,
+      enrolledCount: 1520,
+      ratingAverage: 4.9,
+      ratingCount: 248,
+      guaranteeDays: 7,
+      shortDescription:
+        'Normas de segurança para empilhadeiras, ponte rolante, talhas, amarração de cargas, empilhamento e prevenção de tombamentos.',
+      fullDescription:
+        'A NR-11 regulamenta a operação segura de elevadores de carga, guindastes, transportadores industriais, empilhadeiras, pontes rolantes e métodos de armazenagem e movimentação manual/mecânica de materiais. O curso aborda capacidade nominal, centro de carga e triângulo de estabilidade, inspeção de cabos de aço/cintas têxteis, sinalização sonora e visual, trânsito em rampas e isolamento de área sob carga suspensa.',
+      workloadHours: 8,
+      certificateValidityMonths: 12,
+      targetAudience:
+        'Operadores de empilhadeira e paleteira elétrica, operadores de ponte rolante, sinaleiros/amarradores de carga, auxiliares de logística e almoxarifado.',
+      notForAudience: [
+        'Quem não pretende respeitar limites de carga nominal ou sinalização de segurança em armazéns',
+        'Aulas práticas presenciais em pista de manobra (que devem ser complementadas na empresa quando exigido pelo equipamento específico)',
+      ],
+      includedBonuses: [
+        'Checklist Diário de Pré-Operação (Inspeção Inicial) para Empilhadeira e Ponte Rolante',
+        'Tabela de Redução de Capacidade de Cintas Têxteis por Ângulo de Içamento',
+      ],
+      learningOutcomes: [
+        'Compreender centro de gravidade, centro de carga e o triângulo de estabilidade em empilhadeiras',
+        'Inspecionar cabos de aço, correntes, ganchos e cintas de poliéster antes do içamento',
+        'Aplicar sinalização sonora, visual e distâncias seguras em corredores e rampas',
+        'Organizar pilhas e porta-paletes respeitando resistência do piso e rotas de emergência',
+      ],
+      faq: [
+        {
+          question: 'É obrigatório portar cartão de identificação visível ao operar empilhadeira?',
+          answer:
+            'Sim. A NR-11 (item 11.1.6) determina que os operadores de equipamentos de transporte motorizado sejam habilitados e portem cartão de identificação com nome e fotografia em lugar visível, com validade de 1 ano mediante exame de saúde.',
+        },
+        {
+          question: 'Posso circular sob uma carga suspensa por ponte rolante ou talha?',
+          answer:
+            'Jamais. É expressamente proibido permanecer ou transitar sob cargas suspensas, devendo a área de movimentação permanecer isolada e sinalizada.',
+        },
+      ],
+      coverImageUrl: NR11_COVER_URL,
+      bannerImageUrl: NR11_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 3,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-11-m1',
+        courseId: 'nr-11',
+        title: 'Módulo 1 · Equipamentos Motorizados, Estabilidade e Inspeção',
+        description: 'Requisitos legais da NR-11, triângulo de estabilidade e checklist pré-uso.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr11-l1',
+            title: 'Habilitação, Cartão de Identificação e Estabilidade da Empilhadeira',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Os equipamentos utilizados na movimentação de materiais devem ser calculados e construídos de maneira a oferecer garantias de resistência e segurança, com inspeção permanente de cabos, correntes, roldanas e ganchos.\n\nExigência para operadores (item 11.1.6):\n• Treinamento específico com aproveitamento comprovado.\n• Cartão de identificação com nome e fotografia em local visível.\n• Revalidação anual mediante exame de saúde completo (ASO).\n\nPrincípio do Triângulo de Estabilidade:\nA empilhadeira apoia-se em três pontos (duas rodas dianteiras e o pino pivô do eixo traseiro). Se o centro de gravidade combinado (máquina + carga) sair desse triângulo — por excesso de peso, carga elevada em curvas ou velocidade excessiva — ocorre tombamento lateral ou frontal.',
+          },
+          {
+            id: 'nr11-l2',
+            title: 'Condução Segura em Rampas, Corredores e Pontos Cegos',
+            type: 'text',
+            durationMinutes: 60,
+            order: 2,
+            content:
+              'Regras operacionais fundamentais:\n• Trafegar sempre com os garfos baixos (cerca de 15 a 20 cm do piso) e torre inclinada levemente para trás.\n• Em rampas com carga: subir de frente e descer de marcha à ré para evitar deslizamento da carga dos garfos.\n• Se a carga obstruir a visão frontal, conduzir em marcha à ré com atenção redobrada e buzina em cruzamentos.\n• Proibido transportar passageiros nos garfos, no contrapeso ou dentro da cabine de empilhadeiras monoposto.',
+          },
+        ],
+      },
+      {
+        id: 'nr-11-m2',
+        courseId: 'nr-11',
+        title: 'Módulo 2 · Içamento, Amarração de Cargas e Armazenamento',
+        description: 'Inspeção de cintas/cabos, sinalização de ponte rolante e regras de estocagem.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr11-l3',
+            title: 'Cintas, Cabos de Aço e Armazenamento Seguro de Materiais',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Antes de qualquer içamento com ponte rolante, pórtico ou talha:\n• Verificar a plaqueta de carga máxima admissível.\n• Inspecionar travas de segurança do gancho, desgaste de correntes, fios rompidos em cabos de aço e cortes/costuras em cintas sintéticas.\n• Proteger cintas contra cantos vivos utilizando quebra-cantos.\n\nRegras de Armazenagem (item 11.3):\n• O peso do material armazenado não pode exceder a capacidade de carga calculada para o piso.\n• Materiais empilhados devem ficar afastados pelo menos 0,50 m das estruturas laterais do prédio e jamais obstruir saídas de emergência, extintores ou quadros elétricos.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr11-q1',
+        courseId: 'nr-11',
+        order: 1,
+        prompt: 'Qual a validade do cartão de identificação obrigatório para operadores de equipamentos de transporte motorizado (como empilhadeiras), segundo a NR-11?',
+        options: [
+          'Validade indeterminada após a primeira emissão.',
+          'Validade de 1 ano, renovado mediante exame de saúde completo por conta do empregador.',
+          'Validade de 5 anos sem necessidade de exame médico.',
+          'Apenas durante o período de experiência de 90 dias.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr11-q2',
+        courseId: 'nr-11',
+        order: 2,
+        prompt: 'Ao descer uma rampa transportando carga na empilhadeira, qual deve ser a direção correta de condução?',
+        options: [
+          'De frente em alta velocidade.',
+          'De marcha à ré, mantendo a carga voltada para o alto da rampa e garfos baixos.',
+          'Em ponto morto para economizar combustível.',
+          'Com a torre totalmente erguida no topo.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr11-q3',
+        courseId: 'nr-11',
+        order: 3,
+        prompt: 'Qual é a distância mínima de afastamento que os materiais empilhados devem manter em relação às paredes e estruturas laterais do prédio?',
+        options: [
+          '0,10 m.',
+          '0,50 m (50 centímetros).',
+          'Podem encostar diretamente nas paredes e hidrantes.',
+          'Apenas 2,00 m nos fundos.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr11-q4',
+        courseId: 'nr-11',
+        order: 4,
+        prompt: 'Se um trabalhador notar que uma cinta de poliéster apresenta corte na borda ou etiqueta ilegível antes de um içamento, o que deve fazer?',
+        options: [
+          'Dar um nó na cinta para reforçar.',
+          'Utilizá-la apenas em velocidade reduzida.',
+          'Retirá-la imediatamente de uso, interditar e solicitar substituição.',
+          'Enrolar fita isolante no corte.',
+        ],
+        correctIndex: 2,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-12',
+      slug: 'nr-12',
+      nrCode: 'NR-12',
+      title: 'Segurança no Trabalho em Máquinas e Equipamentos',
+      salesHeadline:
+        'Capacitação NR-12 completa para operar e manter máquinas industriais com segurança e respaldo legal',
+      salesSubheadline:
+        'Proteções fixas e móveis, intertravamentos, cortinas de luz, parada de emergência e bloqueio LOTO em um curso direto ao ponto, com emissão rápida de certificado em PDF.',
+      promoTag: 'Condição promocional · Indústria & Manutenção',
+      originalPriceCents: 15900,
+      priceCents: 9900,
+      enrolledCount: 1120,
+      ratingAverage: 4.8,
+      ratingCount: 196,
+      guaranteeDays: 7,
+      shortDescription:
+        'Proteções fixas e móveis, dispositivos de parada de emergência, bloqueio LOTO e operação segura de máquinas industriais.',
+      fullDescription:
+        'A NR-12 define referências técnicas, princípios fundamentais e medidas de proteção para resguardar a saúde e a integridade física dos trabalhadores na operação, manutenção, limpeza e ajuste de máquinas e equipamentos. O curso aborda zonas de perigo, proteções mecânicas, cortinas de luz, comandos bimanuais, botões de emergência e bloqueio de fontes de energia.',
+      workloadHours: 8,
+      certificateValidityMonths: 24,
+      targetAudience:
+        'Operadores de máquinas CNC, prensas, injetoras, tornos, serras, mecânicos de manutenção industrial e supervisores de produção.',
+      notForAudience: [
+        'Quem deseja burlar procedimentos de segurança ou neutralizar sensores de fábrica',
+        'Projetistas buscando exclusivamente dimensionamento elétrico SIL/PLr de painéis',
+      ],
+      includedBonuses: [
+        'Fluxograma de Bloqueio e Etiquetagem (LOTO) passo a passo',
+        'Checklist diário de inspeção de proteções e botão de emergência',
+      ],
+      learningOutcomes: [
+        'Reconhecer riscos mecânicos, elétricos e térmicos em zonas de operação',
+        'Compreender o funcionamento de proteções fixas, intertravamentos e sensores ópticos',
+        'Aplicar corretamente os dispositivos de parada de emergência e rearme seguro',
+        'Executar procedimentos de bloqueio e etiquetagem (LOTO) em intervenções e limpeza',
+      ],
+      faq: [
+        {
+          question: 'Posso burlar um sensor de intertravamento para agilizar a produção?',
+          answer:
+            'Nunca. A neutralização de dispositivos de segurança é proibida pela NR-12 e expõe o operador a risco grave de amputação ou esmagamento.',
+        },
+        {
+          question: 'O certificado da NR-12 serve para operadores e mecânicos?',
+          answer:
+            'Sim. Abrange operação segura, limpeza, inspeção e bloqueio de energias para manutenção conforme a NR-12.',
+        },
+      ],
+      coverImageUrl: NR12_COVER_URL,
+      bannerImageUrl: NR12_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 4,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-12-m1',
+        courseId: 'nr-12',
+        title: 'Módulo 1 · Sistemas de Segurança e Proteções NR-12',
+        description: 'Arranjo físico, proteções fixas/móveis, intertravamento e parada de emergência.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr12-l1',
+            title: 'Zonas de Perigo, Proteções e Dispositivos de Segurança',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'As máquinas devem possuir sistemas de segurança que garantam proteção à saúde e integridade física nos momentos de operação, manutenção e limpeza.\n\nOrdem de prioridade das medidas de proteção:\n1. Medidas de proteção coletiva (enclausuramento, proteções fixas e móveis intertravadas, cortinas de luz).\n2. Medidas administrativas ou de organização do trabalho.\n3. Medidas de proteção individual (EPI).\n\nOs dispositivos de parada de emergência (botão tipo cogumelo vermelho sobre fundo amarelo) devem permanecer sempre desobstruídos, facilmente acessíveis e NÃO devem ser usados como botão de desligamento rotineiro.',
+          },
+        ],
+      },
+      {
+        id: 'nr-12-m2',
+        courseId: 'nr-12',
+        title: 'Módulo 2 · Manutenção, Limpeza, Bloqueio LOTO e Operação Segura',
+        description: 'Controle de energias perigosas, energia zero e rearme após emergência.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr12-l2',
+            title: 'Procedimentos de Manutenção, Limpeza e Bloqueio (LOTO)',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Qualquer intervenção para limpeza, lubrificação, ajuste ou manutenção deve ocorrer com a máquina parada e suas fontes de energia (elétrica, pneumática, hidráulica) isoladas, bloqueadas com cadeado individual e etiquetadas.\n\nAntes de iniciar a intervenção, deve-se realizar o teste de energia zero para assegurar que não há energia residual armazenada (molas comprimidas, acumuladores hidráulicos ou peças elevadas sem calço mecânico).\n\nApós acionamento do botão de emergência, o simples destravamento do botão NÃO deve religar a máquina automaticamente; exige-se comando intencional de rearme (reset).',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr12-q1',
+        courseId: 'nr-12',
+        order: 1,
+        prompt: 'Qual a ordem de prioridade das medidas de proteção estabelecida pela NR-12?',
+        options: [
+          'EPI primeiro, depois medidas administrativas e por último proteção coletiva.',
+          'Medidas de proteção coletiva primeiro, depois administrativas/organização do trabalho e por último EPI.',
+          'Apenas treinamento verbal substitui a proteção coletiva.',
+          'Uso exclusivo de botão de emergência sem carenagem.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr12-q2',
+        courseId: 'nr-12',
+        order: 2,
+        prompt: 'Sobre o botão de parada de emergência em máquinas NR-12, é correto afirmar:',
+        options: [
+          'Deve ser utilizado para desligar a máquina no fim do expediente.',
+          'Deve ser posicionado em local visível, desobstruído e nunca utilizado como chave geral de rotina.',
+          'Pode ficar trancado dentro do painel elétrico.',
+          'Ao ser solto, deve religar a máquina automaticamente.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr12-q3',
+        courseId: 'nr-12',
+        order: 3,
+        prompt: 'Qual procedimento é obrigatório antes de realizar limpeza ou ajuste na zona de perigo de uma máquina?',
+        options: [
+          'Apenas reduzir a rotação do motor.',
+          'Pedir a um colega para segurar a chave liga/desliga.',
+          'Desenergizar, realizar o bloqueio e etiquetagem (LOTO) das fontes de energia e testar energia zero.',
+          'Usar apenas luva de vaqueta com a máquina em movimento.',
+        ],
+        correctIndex: 2,
+      },
+      {
+        id: 'nr12-q4',
+        courseId: 'nr-12',
+        order: 4,
+        prompt: 'O que acontece quando um botão de parada de emergência é destravado após uma ocorrência?',
+        options: [
+          'A máquina religa imediatamente sozinha.',
+          'O destravamento apenas libera o circuito para que o operador dê comando manual de rearme e partida.',
+          'Os sensores de proteção ficam desativados por 10 minutos.',
+          'A porta intertravada abre mesmo com o eixo girando.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-18',
+      slug: 'nr-18',
+      nrCode: 'NR-18',
+      title: 'Segurança na Indústria da Construção',
+      salesHeadline:
+        'Integração e capacitação NR-18 para liberar sua entrada em canteiros de obras com certificado verificado',
+      salesSubheadline:
+        'Aprenda as exigências da nova NR-18 e do PGR de obras: guarda-corpos, escavações, andaimes, máquinas de obra e instalações elétricas temporárias.',
+      promoTag: 'Condição promocional · Construção Civil',
+      originalPriceCents: 15900,
+      priceCents: 9900,
+      enrolledCount: 1380,
+      ratingAverage: 4.9,
+      ratingCount: 229,
+      guaranteeDays: 7,
+      shortDescription:
+        'Diretrizes da nova NR-18 e PGR na construção civil: escavações, andaimes, proteção contra quedas, eletricidade e canteiro.',
+      fullDescription:
+        'Voltado para profissionais de obras e engenharia, o curso de NR-18 apresenta as diretrizes de prevenção de acidentes na Indústria da Construção. Inclui Programa de Gerenciamento de Riscos (PGR) do canteiro, escavações e fundações, carpintaria e armação, instalações elétricas temporárias, movimentação de cargas, andaimes e proteções coletivas de periferia.',
+      workloadHours: 8,
+      certificateValidityMonths: 24,
+      targetAudience:
+        'Pedreiros, serventes, carpinteiros, armadores, mestres de obras, engenheiros civis e técnicos de segurança em canteiros.',
+      notForAudience: [
+        'Profissionais que atuam exclusivamente em atividades administrativas fora de canteiros de obras',
+      ],
+      includedBonuses: [
+        'Tabela de medidas regulamentares de Guarda-Corpo e Rodapé (GcR)',
+        'Checklist de conformidade para andaimes e quadros elétricos de obra',
+      ],
+      learningOutcomes: [
+        'Compreender a integração do PGR na construção civil conforme a nova NR-18',
+        'Inspecionar guarda-corpos de periferia, bandejas de proteção e andaimes',
+        'Aplicar medidas preventivas em escavações, taludes e escoramentos',
+        'Controlar riscos em serras circulares, betoneiras e quadros elétricos de obra',
+      ],
+      faq: [
+        {
+          question: 'O curso atende o treinamento admissional na construção civil?',
+          answer:
+            'Sim. Cobre a carga horária teórica exigida para capacitação inicial e reciclagem de trabalhadores em canteiros de obras.',
+        },
+        {
+          question: 'Qual a validade do certificado NR-18?',
+          answer:
+            'O certificado possui validade de 24 meses e código verificável para apresentação imediata no canteiro.',
+        },
+      ],
+      coverImageUrl: NR18_COVER_URL,
+      bannerImageUrl: NR18_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 5,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-18-m1',
+        courseId: 'nr-18',
+        title: 'Módulo 1 · PGR no Canteiro e Proteções Coletivas de Periferia',
+        description: 'PGR da obra, áreas de vivência, guarda-corpo padrão e isolamento de vãos.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr18-l1',
+            title: 'Sistema de Guarda-Corpo e Rodapé (GcR) e Periferias',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'É obrigatória a instalação de proteção coletiva onde houver risco de queda de trabalhadores ou de projeção de materiais.\n\nPadrão dimensional do Guarda-Corpo e Rodapé:\n• Travessão superior: 1,20 m de altura.\n• Travessão intermediário: 0,70 m de altura.\n• Rodapé: altura mínima de 0,15 m (15 cm).\n• Vão entre travessões fechado com tela resistente.\n\nAberturas no piso (como vãos de elevador e shafts) devem possuir fechamento provisório resistente ou guarda-corpo fixado de modo seguro.',
+          },
+        ],
+      },
+      {
+        id: 'nr-18-m2',
+        courseId: 'nr-18',
+        title: 'Módulo 2 · Escavações, Andaimes e Instalações Elétricas',
+        description: 'Estabilidade de taludes, forração de andaimes, serras circulares e proteção DR.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr18-l2',
+            title: 'Segurança em Escavações, Andaimes e Quadros Elétricos de Obra',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Escavações com profundidade superior a 1,25 m devem dispor de escadas ou rampas próximas aos postos de trabalho para saída rápida em emergência, além de escoramento ou taludamento conforme projeto.\n\nOs andaimes devem possuir piso de trabalho com forração completa, antiderrapante, nivelado e travado, além de guarda-corpo e rodapé em todo o perímetro.\n\nQuadros elétricos temporários devem estar aterrados, sinalizados, trancados e equipados com Dispositivo Diferencial Residual (DR).',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr18-q1',
+        courseId: 'nr-18',
+        order: 1,
+        prompt: 'Quais são as alturas regulamentares do travessão superior, travessão intermediário e rodapé de um guarda-corpo na NR-18?',
+        options: [
+          '0,90 m, 0,45 m e 0,10 m.',
+          '1,20 m (superior), 0,70 m (intermediário) e mínimo de 0,15 m (rodapé).',
+          '1,50 m, 1,00 m e 0,05 m.',
+          'Não há medida mínima definida na norma.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr18-q2',
+        courseId: 'nr-18',
+        order: 2,
+        prompt: 'A partir de qual profundidade escavações exigem escadas ou rampas para saída rápida dos trabalhadores?',
+        options: [
+          'Superior a 0,50 m.',
+          'Superior a 1,25 m.',
+          'Apenas acima de 3,50 m.',
+          'Somente em escavações com água.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr18-q3',
+        courseId: 'nr-18',
+        order: 3,
+        prompt: 'Qual dispositivo elétrico de proteção contra choques é obrigatório nos circuitos de obra da NR-18?',
+        options: [
+          'Apenas fita isolante dupla.',
+          'Dispositivo Diferencial Residual (DR) e aterramento adequado.',
+          'Chave faca aberta.',
+          'Extensão sem pino terra.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr18-q4',
+        courseId: 'nr-18',
+        order: 4,
+        prompt: 'Como deve ser o piso de trabalho de um andaime segundo a NR-18?',
+        options: [
+          'Com pranchas soltas e espaçadas para economizar madeira.',
+          'Com forração completa, antiderrapante, nivelada e fixada/travada de modo seguro.',
+          'Apenas uma tábua estreita no centro.',
+          'Sem necessidade de rodapé acima de 3 metros.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-20',
+      slug: 'nr-20',
+      nrCode: 'NR-20',
+      title: 'Segurança com Inflamáveis e Combustíveis (Básico)',
+      salesHeadline:
+        'Emita seu Certificado NR-20 Básico (8h) e trabalhe em áreas com combustíveis, gases e produtos inflamáveis',
+      salesSubheadline:
+        'Domine classificação de inflamáveis (Ponto de Fulgor), Limites de Explosividade (LIE/LSE), aterramento contra eletricidade estática, controle de fontes de ignição e resposta a vazamentos.',
+      promoTag: 'Postos, Tanques & Indústria Química · Anexo II NR-20',
+      originalPriceCents: 18900,
+      priceCents: 12900,
+      enrolledCount: 1410,
+      ratingAverage: 4.9,
+      ratingCount: 235,
+      guaranteeDays: 7,
+      shortDescription:
+        'Capacitação Básica (8h) NR-20: propriedades físico-químicas, controle de ignição, aterramento, FDS/FISPQ e emergência com inflamáveis.',
+      fullDescription:
+        'A NR-20 estabelece requisitos mínimos para a gestão da segurança e saúde no trabalho contra os fatores de risco de acidentes provenientes das atividades de extração, produção, armazenamento, transferência, manuseio e manipulação de inflamáveis e líquidos combustíveis. O curso Básico (8h) cobre definição legal (ponto de fulgor ≤ 60 °C vs combustíveis), LIE/LSE, fontes de ignição e eletricidade estática, FDS (antiga FISPQ), Permissão para Trabalho a Quente e procedimentos de emergência.',
+      workloadHours: 8,
+      certificateValidityMonths: 36,
+      targetAudience:
+        'Frentistas, operadores de descarga de combustíveis, profissionais de manutenção industrial, químicos, soldadores próximos a áreas classificadas e técnicos de segurança.',
+      notForAudience: [
+        'Operações específicas que exigem curso Intermediário (16h) ou Avançado (24h/32h) em instalações Classe II e III sem complementação',
+      ],
+      includedBonuses: [
+        'Tabela Comparativa: Líquido Inflamável (≤ 60 °C) x Líquido Combustível (> 60 °C a ≤ 93 °C)',
+        'Checklist de Transbordo Seguro, Aterramento Eletrostático e Controle de Ignição',
+      ],
+      learningOutcomes: [
+        'Diferenciar líquidos inflamáveis, combustíveis e gases inflamáveis pelo Ponto de Fulgor',
+        'Interpretar Ficha com Dados de Segurança (FDS) e Limites de Explosividade (LIE e LSE)',
+        'Controlar fontes de ignição, chamas abertas, faíscas e descargas eletrostáticas',
+        'Atuar corretamente na contenção inicial de vazamentos e acionamento do plano de emergência',
+      ],
+      faq: [
+        {
+          question: 'Qual a diferença entre líquido inflamável e líquido combustível na NR-20?',
+          answer:
+            'Líquidos inflamáveis possuem ponto de fulgor ≤ 60 °C (ex.: gasolina, etanol, acetona). Líquidos combustíveis possuem ponto de fulgor > 60 °C e ≤ 93 °C (ex.: óleo diesel).',
+        },
+        {
+          question: 'Qual a periodicidade de reciclagem do curso Básico da NR-20?',
+          answer:
+            'Conforme o Anexo II da NR-20, o curso Básico deve ser atualizado a cada 3 anos (36 meses) com reciclagem de 4 horas, ou antes em caso de alteração de processo ou ocorrência de incidente.',
+        },
+      ],
+      coverImageUrl: NR20_COVER_URL,
+      bannerImageUrl: NR20_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 6,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-20-m1',
+        courseId: 'nr-20',
+        title: 'Módulo 1 · Propriedades dos Inflamáveis e Classificação NR-20',
+        description: 'Ponto de fulgor, combustão, LIE/LSE, gases inflamáveis e leitura de FDS.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr20-l1',
+            title: 'Ponto de Fulgor, Faixa de Explosividade (LIE/LSE) e FDS',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Classificação oficial pela NR-20:\n• Líquidos Inflamáveis: líquidos que possuem ponto de fulgor ≤ 60 °C.\n• Gases Inflamáveis: gases que inflamam com o ar a 20 °C e pressão padrão de 101,3 kPa.\n• Líquidos Combustíveis: líquidos com ponto de fulgor > 60 °C e ≤ 93 °C.\n\nParâmetros Críticos de Segurança:\n• Ponto de Fulgor (Flash Point): menor temperatura na qual um líquido libera vapores suficientes para formar mistura inflamável com o ar próxima à superfície.\n• LIE (Limite Inferior de Explosividade): concentração mínima de gás/vapor no ar abaixo da qual a mistura é "pobre" e não queima.\n• LSE (Limite Superior de Explosividade): concentração máxima acima da qual a mistura é "rica" (falta oxigênio). Entre o LIE e o LSE existe perigo imediato de explosão.',
+          },
+        ],
+      },
+      {
+        id: 'nr-20-m2',
+        courseId: 'nr-20',
+        title: 'Módulo 2 · Controle de Fontes de Ignição, Aterramento e Emergências',
+        description: 'Áreas classificadas (Ex), eletricidade estática, trabalho a quente e contenção de derrames.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr20-l2',
+            title: 'Eletricidade Estática, Equipamentos Ex e Resposta a Vazamentos',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Em áreas classificadas com risco de formação de atmosfera explosiva:\n• Todos os equipamentos elétricos devem possuir certificação à prova de explosão ou segurança intrínseca (Ex).\n• Caminhões-tanque, tambores metálicos e mangotes de transferência devem ser interligados e aterrados antes de abrir válvulas para dissipar cargas eletrostáticas.\n• É proibido o uso de celulares não certificados, cigarros, esmerilhadeiras ou solda sem Permissão de Trabalho (PT) específica e monitoramento contínuo de LEL.\n\nEm caso de vazamento:\nEliminar imediatamente fontes de ignição, isolar a área a favor do vento, conter o derrame com diques/mantas absorventes (evitando rede pluvial) e acionar a brigada de emergência.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr20-q1',
+        courseId: 'nr-20',
+        order: 1,
+        prompt: 'Pela NR-20, qual é o critério técnico que define um Líquido Inflamável?',
+        options: [
+          'Líquido com ponto de fulgor inferior ou igual a 60 °C.',
+          'Líquido com ponto de fulgor acima de 150 °C.',
+          'Qualquer líquido armazenado em galões azuis.',
+          'Apenas líquidos congelados abaixo de 0 °C.',
+        ],
+        correctIndex: 0,
+      },
+      {
+        id: 'nr20-q2',
+        courseId: 'nr-20',
+        order: 2,
+        prompt: 'Por que tambores metálicos e caminhões-tanque devem ser aterrados durante o transbordo de combustíveis?',
+        options: [
+          'Para aumentar a pressão da bomba de descarga.',
+          'Para dissipar a eletricidade estática acumulada pelo atrito do fluido e evitar faíscas de ignição.',
+          'Para aquecer o combustível antes da descarga.',
+          'Apenas para marcar a vaga de estacionamento.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr20-q3',
+        courseId: 'nr-20',
+        order: 3,
+        prompt: 'O que significa o intervalo entre o LIE (Limite Inferior de Explosividade) e o LSE (Limite Superior de Explosividade)?',
+        options: [
+          'Faixa em que a concentração de vapor/gás inflamável no ar permite combustão ou explosão na presença de fonte de ignição.',
+          'Horário de funcionamento permitido para o posto de abastecimento.',
+          'Faixa segura onde não há nenhum risco de fogo.',
+          'Pressão máxima suportada pela mangueira.',
+        ],
+        correctIndex: 0,
+      },
+      {
+        id: 'nr20-q4',
+        courseId: 'nr-20',
+        order: 4,
+        prompt: 'Qual a conduta correta antes de executar solda ou corte (trabalho a quente) próximo a área com histórico de inflamáveis?',
+        options: [
+          'Iniciar rapidamente para terminar antes que o gás se espalhe.',
+          'Emitir Permissão de Trabalho (PT), purgar/ventilar recipientes, medir ausência de gases (0% LEL) e manter extintores de prontidão.',
+          'Molhar apenas o chão com água.',
+          'Desligar os alarmes de fumaça para evitar disparos falsos.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-23',
+      slug: 'nr-23',
+      nrCode: 'NR-23',
+      title: 'Proteção Contra Incêndios e Combate a Incêndio',
+      salesHeadline:
+        'Certificação NR-23 completa: aprenda classes de fogo, extintores, hidrantes e plano de abandono de área',
+      salesSubheadline:
+        'Saiba agir nos primeiros minutos críticos de um princípio de incêndio sem erros fatais na escolha do extintor, com emissão instantânea de certificado em PDF.',
+      promoTag: 'Essencial para todas as empresas · CIPA & Brigada',
+      originalPriceCents: 13900,
+      priceCents: 8900,
+      enrolledCount: 2150,
+      ratingAverage: 4.9,
+      ratingCount: 374,
+      guaranteeDays: 7,
+      shortDescription:
+        'Tetraedro do fogo, classes de incêndio (A, B, C, D, K), seleção de extintores, saídas de emergência e evacuação segura.',
+      fullDescription:
+        'A NR-23 determina que todos os empregadores adotem medidas de prevenção de incêndios em conformidade com a legislação estadual e as normas técnicas aplicáveis, além de providenciar informações aos trabalhadores sobre utilização dos equipamentos de combate ao incêndio, procedimentos para evacuação e dispositivos de alarme. O curso aborda teoria do fogo, métodos de extinção, classes A/B/C/D/K, inspeção e manuseio de extintores e hidrantes, sinalização e evacuação organizada.',
+      workloadHours: 4,
+      certificateValidityMonths: 12,
+      targetAudience:
+        'Colaboradores de todos os setores industriais, comerciais e canteiros de obras, membros da CIPA, porteiros, vigilantes e equipes de apoio à brigada.',
+      notForAudience: [
+        'Quem busca habilitação presencial exclusiva de Bombeiro Civil profissional (Lei 11.901/2009)',
+      ],
+      includedBonuses: [
+        'Guia Visual de Seleção de Extintores por Classe de Incêndio (A, B, C, D e K)',
+        'Checklist Mensal de Inspeção de Extintores, Mangueiras e Rotas de Fuga',
+      ],
+      learningOutcomes: [
+        'Compreender os quatro elementos do Tetraedro do Fogo e os métodos de extinção',
+        'Identificar corretamente as Classes de Incêndio A, B, C, D e K',
+        'Selecionar e operar com segurança extintores de Água, PQS (BC/ABC), CO2 e Espuma',
+        'Manter rotas de fuga desobstruídas e coordenar abandono de área em segurança',
+      ],
+      faq: [
+        {
+          question: 'Posso usar extintor de água em fogo envolvendo equipamentos elétricos ou óleo?',
+          answer:
+            'Nunca. A água conduz eletricidade (risco de choque fatal na Classe C) e afunda sob líquidos inflamáveis (espalhando as chamas na Classe B).',
+        },
+        {
+          question: 'As portas das saídas de emergência podem ficar trancadas por fora com corrente durante o turno?',
+          answer:
+            'Jamais. A NR-23 proíbe trancar ou obstruir saídas de emergência durante a jornada de trabalho; elas devem abrir no sentido da saída com barra antipânico ou destravamento imediato.',
+        },
+      ],
+      coverImageUrl: NR23_COVER_URL,
+      bannerImageUrl: NR23_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 7,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-23-m1',
+        courseId: 'nr-23',
+        title: 'Módulo 1 · Teoria do Fogo, Propagação e Classes de Incêndio',
+        description: 'Tetraedro do fogo, métodos de extinção e classificação A, B, C, D e K.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr23-l1',
+            title: 'Tetraedro do Fogo e Classes de Incêndio (A, B, C, D, K)',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'A combustão sustentada depende de quatro elementos (Tetraedro do Fogo): Combustível, Comburente (Oxigênio), Calor e Reação em Cadeia. Extingue-se o fogo por resfriamento (retira calor), abafamento (retira oxigênio), isolamento (retira combustível) ou quebra da reação em cadeia.\n\nClasses de Incêndio:\n• Classe A: materiais sólidos fibrosos que deixam brasas (madeira, papel, tecido, plásticos). Combate principal por resfriamento (Água ou Pó ABC).\n• Classe B: líquidos e gases inflamáveis que queimam em superfície sem deixar resíduos (gasolina, álcool, tintas, GLP). Combate por abafamento/quebra de cadeia (Pó BC/ABC, CO2, Espuma).\n• Classe C: equipamentos e instalações elétricas energizadas. Exige agente não condutor (CO2 ou Pó Químico Seco).\n• Classe D: metais pirofóricos (magnésio, sódio, titânio) — exigem pós especiais secos.\n• Classe K: óleos e gorduras em cozinhas comerciais — requer agente químico úmido (acetato de potássio).',
+          },
+        ],
+      },
+      {
+        id: 'nr-23-m2',
+        courseId: 'nr-23',
+        title: 'Módulo 2 · Extintores, Hidrantes e Abandono de Área (NR-23)',
+        description: 'Inspeção de lacre/manômetro, técnica PASS de combate e evacuação.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr23-l2',
+            title: 'Uso Correto de Extintores, Saídas de Emergência e Evacuação',
+            type: 'text',
+            durationMinutes: 60,
+            order: 1,
+            content:
+              'Inspeção rápida do extintor:\n• Verificar se o acesso está totalmente desobstruído e sinalizado.\n• Conferir o ponteiro do manômetro na faixa verde (exceto CO2, que é verificado por pesagem).\n• Conferir lacre intacto e validade da recarga / teste hidrostático.\n\nTécnica de Aplicação:\n1. Posicione-se a favor do vento mantendo rota de fuga livre atrás de você.\n2. Rompa o lacre e retire o pino trava.\n3. Direcione o jato à BASE das chamas fazendo movimento em leque.\n\nRegras NR-23 de Abandono de Área:\n• Saídas nunca podem ser fechadas à chave ou bloqueadas por estoques.\n• Nunca utilizar elevadores durante incêndio.\n• Deslocar-se agachado em caso de fumaça densa e dirigir-se ao Ponto de Encontro.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr23-q1',
+        courseId: 'nr-23',
+        order: 1,
+        prompt: 'Quais tipos de materiais pertencem à Classe A de incêndio e qual seu método principal de extinção?',
+        options: [
+          'Líquidos inflamáveis; extinção exclusiva com água em jato sólido.',
+          'Materiais sólidos fibrosos que deixam brasas (madeira, papel, tecido); combate principal por resfriamento.',
+          'Equipamentos elétricos energizados; combate com água.',
+          'Metais pirofóricos como magnésio.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr23-q2',
+        courseId: 'nr-23',
+        order: 2,
+        prompt: 'Para combater um princípio de incêndio em um painel elétrico energizado (Classe C), quais extintores são adequados?',
+        options: [
+          'Água Pressurizada ou Espuma Mecânica.',
+          'CO2 (Gás Carbônico) ou Pó Químico Seco (PQS BC/ABC).',
+          'Balde com água e sabão.',
+          'Qualquer líquido refrigerante.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr23-q3',
+        courseId: 'nr-23',
+        order: 3,
+        prompt: 'Ao utilizar um extintor portátil em um princípio de incêndio, para onde o jato deve ser direcionado?',
+        options: [
+          'Para o alto da fumaça.',
+          'Para a base das chamas (onde está o material combustível), com movimento em leque.',
+          'Para as paredes laterais distantes.',
+          'Diretamente para o teto do galpão.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr23-q4',
+        courseId: 'nr-23',
+        order: 4,
+        prompt: 'Segundo a NR-23, o que é terminantemente proibido em relação às saídas de emergência durante o horário de trabalho?',
+        options: [
+          'Sinalizá-las com placas fotoluminescentes.',
+          'Fechá-las a chave, aferrolhá-las ou obstruí-las com materiais e paletes.',
+          'Instalar barras antipânico.',
+          'Manter iluminação de emergência funcionando.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
+      id: 'nr-33',
+      slug: 'nr-33',
+      nrCode: 'NR-33',
+      title: 'Segurança e Saúde em Espaços Confinados',
+      salesHeadline:
+        'Domine os requisitos da NR-33 (16h) e conquiste sua certificação de Trabalhador Autorizado e Vigia ainda hoje',
+      salesSubheadline:
+        'Aprenda monitoramento atmosférico (O2, LEL, CO, H2S), emissão de PET, bloqueio LOTO e plano de salvamento em uma plataforma objetiva com emissão imediata de certificado válido.',
+      promoTag: 'Condição promocional · Reciclagem e Formação 16h',
+      originalPriceCents: 22900,
+      priceCents: 14900,
+      enrolledCount: 1640,
+      ratingAverage: 4.9,
+      ratingCount: 284,
+      guaranteeDays: 7,
+      shortDescription:
+        'Capacitação para trabalhadores autorizados e vigias em espaços confinados: avaliação atmosférica, PET, ventilação e resgate.',
+      fullDescription:
+        'A NR-33 trata da gestão de segurança e saúde nos trabalhos em espaços confinados — áreas não projetadas para ocupação humana contínua, com meios limitados de entrada e saída e ventilação insuficiente. Este curso abrange reconhecimento de riscos atmosféricos (O2, inflamáveis, CO e H2S), Permissão de Entrada e Trabalho (PET), bloqueio e etiquetagem (LOTO), atuação do vigia e procedimentos de emergência.',
+      workloadHours: 16,
+      certificateValidityMonths: 12,
+      targetAudience:
+        'Operadores industriais, equipes de manutenção de tanques, silos, galerias, reservatórios, técnicos de segurança e vigias de espaço confinado.',
+      notForAudience: [
+        'Profissionais que não passarão pela avaliação formal exigida pela NR-33',
+        'Atividades que demandem certificação específica de Supervisor de Entrada (40h)',
+        'Quem procura conteúdo superficial sem foco em gases tóxicos e procedimentos de PET',
+      ],
+      includedBonuses: [
+        'Modelo comentado de Permissão de Entrada e Trabalho (PET) conforme NR-33',
+        'Guia de Limites Seguros de Detector Multigás (O2, LEL, CO e H2S)',
+        'Checklist de deveres do Vigia antes, durante e após a entrada',
+        'Suporte técnico para dúvidas sobre validação documental no eSocial',
+      ],
+      learningOutcomes: [
+        'Identificar e caracterizar espaços confinados conforme critérios da NR-33',
+        'Interpretar leituras de detector multigás (O2, LEL, CO e H2S)',
+        'Preencher e auditar a Permissão de Entrada e Trabalho (PET)',
+        'Executar isolamento de energias perigosas, ventilação forçada e comunicação com vigia',
+      ],
+      faq: [
+        {
+          question: 'Qual a validade do certificado da NR-33?',
+          answer:
+            'A reciclagem da NR-33 deve ser realizada periodicamente a cada 12 meses (1 ano), conforme exigência da norma.',
+        },
+        {
+          question: 'Este curso atende trabalhadores autorizados e vigias?',
+          answer:
+            'Sim. O conteúdo programático contempla todas as diretrizes teóricas para Trabalhadores Autorizados e Vigias (16 horas).',
+        },
+        {
+          question: 'Como funciona a validação do certificado pelo SESMT da contratante?',
+          answer:
+            'Cada certificado possui um código único impresso no cabeçalho. Qualquer técnico de segurança ou auditor pode confirmar a autenticidade instantaneamente na página /validar.',
+        },
+        {
+          question: 'Posso parcelar no cartão ou pagar no Pix?',
+          answer:
+            'Sim. Aceitamos Pix com liberação imediata e cartão de crédito em até 12x via InfinitePay Checkout Integrado.',
+        },
+      ],
+      coverImageUrl: NR33_COVER_URL,
+      bannerImageUrl: NR33_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 8,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-33-m1',
+        courseId: 'nr-33',
+        title: 'Módulo 1 · Caracterização, Atmosferas Perigosas e PET',
+        description: 'Definição legal de espaço confinado, gases tóxicos, deficiência/enriquecimento de O2 e PET.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr33-l1',
+            title: 'O que define um Espaço Confinado na NR-33',
+            type: 'text',
+            durationMinutes: 55,
+            order: 1,
+            content:
+              'Espaço confinado é qualquer área ou ambiente não projetado para ocupação humana contínua, que possua meios limitados de entrada e saída, cuja ventilação existente é insuficiente para remover contaminantes ou onde possa existir a deficiência ou enriquecimento de oxigênio.\n\nExemplos comuns:\n• Tanques, silos, caldeiras, vasos de pressão.\n• Galerias subterrâneas, poços de visita, tubulações.\n• Fosso de elevadores, dutos e reservatórios.\n\nPapéis fundamentais na operação:\n1. Responsável Técnico\n2. Supervisor de Entrada (emite a PET)\n3. Vigia (permanece fora, em contato contínuo)\n4. Trabalhador Autorizado (executa a atividade interna).',
+          },
+          {
+            id: 'nr33-l2',
+            title: 'Monitoramento Atmosférico e Limites Seguros',
+            type: 'text',
+            durationMinutes: 60,
+            order: 2,
+            content:
+              'Antes de qualquer ingresso, o Supervisor de Entrada deve realizar testes atmosféricos em diferentes níveis (topo, meio e fundo) com detector multigás calibrado.\n\nParâmetros de referência:\n• Oxigênio (O2): faixa segura entre 19,5% e 23,0%. Abaixo de 19,5% há risco de asfixia; acima de 23% há risco de incêndio/explosão.\n• Gases inflamáveis: abaixo de 10% do Limite Inferior de Explosividade (LIE / LEL).\n• Monóxido de Carbono (CO) e Sulfeto de Hidrogênio (H2S): dentro dos limites de tolerância previstos na NR-15.\n\nJamais utilize oxigênio puro para ventilar um espaço confinado; utilize insuflação/exaustão com ar atmosférico limpo.',
+          },
+        ],
+      },
+      {
+        id: 'nr-33-m2',
+        courseId: 'nr-33',
+        title: 'Módulo 2 · Deveres do Vigia, Bloqueios e Resgate',
+        description: 'Atuação permanente do vigia, bloqueio de energias (LOTO) e plano de salvamento.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr33-l3',
+            title: 'Responsabilidades do Vigia e Permissão de Entrada e Trabalho (PET)',
+            type: 'text',
+            durationMinutes: 50,
+            order: 1,
+            content:
+              'A Permissão de Entrada e Trabalho (PET) é o documento escrito que autoriza a entrada em espaço confinado, válida apenas para uma única entrada e devendo ser encerrada ao término dos serviços.\n\nO Vigia NUNCA deve entrar no espaço confinado para tentar resgatar um colega sem antes acionar a equipe de salvamento e ser substituído por outro vigia qualificado. Suas atribuições incluem manter contagem exata dos trabalhadores, controlar o acesso e ordenar abandono imediato ao detectar qualquer condição de risco.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr33-q1',
+        courseId: 'nr-33',
+        order: 1,
+        prompt: 'Qual a faixa segura de concentração de Oxigênio (O2) para entrada em espaço confinado sem proteção respiratória autônoma?',
+        options: [
+          'Entre 14,0% e 18,0%.',
+          'Entre 19,5% e 23,0%.',
+          'Acima de 25,0%.',
+          'Qualquer valor acima de 10,0%.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr33-q2',
+        courseId: 'nr-33',
+        order: 2,
+        prompt: 'Quem tem a responsabilidade de emitir e assinar a Permissão de Entrada e Trabalho (PET)?',
+        options: [
+          'O próprio trabalhador autorizado.',
+          'O Supervisor de Entrada.',
+          'O porteiro da fábrica.',
+          'Qualquer integrante da CIPA sem treinamento específico.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr33-q3',
+        courseId: 'nr-33',
+        order: 3,
+        prompt: 'Em caso de emergência com um trabalhador desacordado dentro do espaço confinado, o que o Vigia deve fazer primeiro?',
+        options: [
+          'Entrar imediatamente sem equipamento para puxar o colega.',
+          'Acionar a equipe de resgate/emergência e permanecer em seu posto mantendo a monitoração externa.',
+          'Fechar a tampa de acesso para conter gases.',
+          'Injetar oxigênio puro dentro do tanque.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr33-q4',
+        courseId: 'nr-33',
+        order: 4,
+        prompt: 'Por que a medição atmosférica deve ser feita no topo, meio e fundo do espaço confinado?',
+        options: [
+          'Apenas para gastar bateria do aparelho.',
+          'Porque diferentes gases têm densidades distintas e podem se acumular no topo (metano), no meio (CO) ou no fundo (H2S).',
+          'Para verificar a temperatura da parede metálica.',
+          'Não é necessário medir no fundo, apenas na boca de visita.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
       id: 'nr-35',
       slug: 'nr-35',
       nrCode: 'NR-35',
@@ -63,7 +1386,7 @@ export const SEED_COURSES: SeedCourseBundle[] = [
         'Emita hoje o seu Certificado NR-35 válido em todo o Brasil e entre em obra sem barreiras na portaria',
       salesSubheadline:
         'Treinamento teórico completo (8h) conforme a NR-35 e Portaria MTE, com acesso imediato após o Pix, prova formal objetiva e certificado em PDF assinado por Engenheiro de Segurança do Trabalho.',
-      promoTag: 'Condição promocional de lançamento · Acesso imediato',
+      promoTag: 'Mais procurado · Acesso imediato após Pix',
       originalPriceCents: 18900,
       priceCents: 11900,
       enrolledCount: 2480,
@@ -128,7 +1451,7 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       instructorRole: 'Engenheiro de Segurança do Trabalho',
       instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
       status: 'published',
-      displayOrder: 1,
+      displayOrder: 9,
       passingScore: 70,
     },
     modules: [
@@ -255,563 +1578,6 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       },
     ],
   },
-  {
-    course: {
-      id: 'nr-33',
-      slug: 'nr-33',
-      nrCode: 'NR-33',
-      title: 'Segurança e Saúde em Espaços Confinados',
-      salesHeadline:
-        'Domine os requisitos da NR-33 (16h) e conquiste sua certificação de Trabalhador Autorizado e Vigia ainda hoje',
-      salesSubheadline:
-        'Aprenda monitoramento atmosférico (O2, LEL, CO, H2S), emissão de PET, bloqueio LOTO e plano de salvamento em uma plataforma objetiva com emissão imediata de certificado válido.',
-      promoTag: 'Condição promocional · Reciclagem e Formação 16h',
-      originalPriceCents: 22900,
-      priceCents: 14900,
-      enrolledCount: 1640,
-      ratingAverage: 4.9,
-      ratingCount: 284,
-      guaranteeDays: 7,
-      shortDescription:
-        'Capacitação para trabalhadores autorizados e vigias em espaços confinados: avaliação atmosférica, PET, ventilação e resgate.',
-      fullDescription:
-        'A NR-33 trata da gestão de segurança e saúde nos trabalhos em espaços confinados — áreas não projetadas para ocupação humana contínua, com meios limitados de entrada e saída e ventilação insuficiente. Este curso abrange reconhecimento de riscos atmosféricos (O2, inflamáveis, CO e H2S), Permissão de Entrada e Trabalho (PET), bloqueio e etiquetagem (LOTO), atuação do vigia e procedimentos de emergência.',
-      workloadHours: 16,
-      certificateValidityMonths: 12,
-      targetAudience:
-        'Operadores industriais, equipes de manutenção de tanques, silos, galerias, reservatórios, técnicos de segurança e vigias de espaço confinado.',
-      notForAudience: [
-        'Profissionais que não passarão pela avaliação formal exigida pela NR-33',
-        'Atividades que demandem certificação específica de Supervisor de Entrada (40h)',
-        'Quem procura conteúdo superficial sem foco em gases tóxicos e procedimentos de PET',
-      ],
-      includedBonuses: [
-        'Modelo comentando de Permissão de Entrada e Trabalho (PET) conforme NR-33',
-        'Guia de Limites Seguros de Detector Multigás (O2, LEL, CO e H2S)',
-        'Checklist de deveres do Vigia antes, durante e após a entrada',
-        'Suporte técnico para dúvidas sobre validação documental no eSocial',
-      ],
-      learningOutcomes: [
-        'Identificar e caracterizar espaços confinados conforme critérios da NR-33',
-        'Interpretar leituras de detector multigás (O2, LEL, CO e H2S)',
-        'Preencher e auditar a Permissão de Entrada e Trabalho (PET)',
-        'Executar isolamento de energias perigosas, ventilação forçada e comunicação com vigia',
-      ],
-      faq: [
-        {
-          question: 'Qual a validade do certificado da NR-33?',
-          answer:
-            'A reciclagem da NR-33 deve ser realizada periodicamente a cada 12 meses (1 ano), conforme exigência da norma.',
-        },
-        {
-          question: 'Este curso atende trabalhadores autorizados e vigias?',
-          answer:
-            'Sim. O conteúdo programático contempla todas as diretrizes teóricas para Trabalhadores Autorizados e Vigias (16 horas).',
-        },
-        {
-          question: 'Como funciona a validação do certificado pelo SESMT da contratante?',
-          answer:
-            'Cada certificado possui um código único impresso no cabeçalho. Qualquer técnico de segurança ou auditor pode confirmar a autenticidade instantaneamente na página /validar.',
-        },
-        {
-          question: 'Posso parcelar no cartão ou pagar no Pix?',
-          answer:
-            'Sim. Aceitamos Pix com liberação imediata e cartão de crédito em até 12x via InfinitePay Checkout Integrado.',
-        },
-      ],
-      coverImageUrl: NR33_COVER_URL,
-      bannerImageUrl: NR33_COVER_URL,
-      instructorName: 'Eng. Carlos Eduardo Mendes',
-      instructorRole: 'Engenheiro de Segurança do Trabalho',
-      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
-      status: 'published',
-      displayOrder: 2,
-      passingScore: 70,
-    },
-    modules: [
-      {
-        id: 'nr-33-m1',
-        courseId: 'nr-33',
-        title: 'Módulo 1 · Caracterização, Atmosferas Perigosas e PET',
-        description: 'Definição legal de espaço confinado, gases tóxicos, deficiência/enriquecimento de O2 e PET.',
-        order: 1,
-        lessons: [
-          {
-            id: 'nr33-l1',
-            title: 'O que define um Espaço Confinado na NR-33',
-            type: 'text',
-            durationMinutes: 55,
-            order: 1,
-            content:
-              'Espaço confinado é qualquer área ou ambiente não projetado para ocupação humana contínua, que possua meios limitados de entrada e saída, cuja ventilação existente é insuficiente para remover contaminantes ou onde possa existir a deficiência ou enriquecimento de oxigênio.\n\nExemplos comuns:\n• Tanques, silos, caldeiras, vasos de pressão.\n• Galerias subterrâneas, poços de visita, tubulações.\n• Fosso de elevadores, dutos e reservatórios.\n\nPapéis fundamentais na operação:\n1. Responsável Técnico\n2. Supervisor de Entrada (emite a PET)\n3. Vigia (permanece fora, em contato contínuo)\n4. Trabalhador Autorizado (executa a atividade interna).',
-          },
-          {
-            id: 'nr33-l2',
-            title: 'Monitoramento Atmosférico e Limites Seguros',
-            type: 'text',
-            durationMinutes: 60,
-            order: 2,
-            content:
-              'Antes de qualquer ingresso, o Supervisor de Entrada deve realizar testes atmosféricos em diferentes níveis (topo, meio e fundo) com detector multigás calibrado.\n\nParâmetros de referência:\n• Oxigênio (O2): faixa segura entre 19,5% e 23,0%. Abaixo de 19,5% há risco de asfixia; acima de 23% há risco de incêndio/explosão.\n• Gases inflamáveis: abaixo de 10% do Limite Inferior de Explosividade (LIE / LEL).\n• Monóxido de Carbono (CO) e Sulfeto de Hidrogênio (H2S): dentro dos limites de tolerância previstos na NR-15.\n\nJamais utilize oxigênio puro para ventilar um espaço confinado; utilize insuflação/exaustão com ar atmosférico limpo.',
-          },
-        ],
-      },
-      {
-        id: 'nr-33-m2',
-        courseId: 'nr-33',
-        title: 'Módulo 2 · Deveres do Vigia, Bloqueios e Resgate',
-        description: 'Atuação permanente do vigia, bloqueio de energias (LOTO) e plano de salvamento.',
-        order: 2,
-        lessons: [
-          {
-            id: 'nr33-l3',
-            title: 'Responsabilidades do Vigia e Permissão de Entrada e Trabalho (PET)',
-            type: 'text',
-            durationMinutes: 50,
-            order: 1,
-            content:
-              'A Permissão de Entrada e Trabalho (PET) é o documento escrito que autoriza a entrada em espaço confinado, válida apenas para uma única entrada e devendo ser encerrada ao término dos serviços.\n\nO Vigia NUNCA deve entrar no espaço confinado para tentar resgatar um colega sem antes acionar a equipe de salvamento e ser substituído por outro vigia qualificado. Suas atribuições incluem manter contagem exata dos trabalhadores, controlar o acesso e ordenar abandono imediato ao detectar qualquer condição de risco.',
-          },
-        ],
-      },
-    ],
-    questions: [
-      {
-        id: 'nr33-q1',
-        courseId: 'nr-33',
-        order: 1,
-        prompt: 'Qual a faixa segura de concentração de Oxigênio (O2) para entrada em espaço confinado sem proteção respiratória autônoma?',
-        options: [
-          'Entre 14,0% e 18,0%.',
-          'Entre 19,5% e 23,0%.',
-          'Acima de 25,0%.',
-          'Qualquer valor acima de 10,0%.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr33-q2',
-        courseId: 'nr-33',
-        order: 2,
-        prompt: 'Quem tem a responsabilidade de emitir e assinar a Permissão de Entrada e Trabalho (PET)?',
-        options: [
-          'O próprio trabalhador autorizado.',
-          'O Supervisor de Entrada.',
-          'O porteiro da fábrica.',
-          'Qualquer integrante da CIPA sem treinamento específico.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr33-q3',
-        courseId: 'nr-33',
-        order: 3,
-        prompt: 'Em caso de emergência com um trabalhador desacordado dentro do espaço confinado, o que o Vigia deve fazer primeiro?',
-        options: [
-          'Entrar imediatamente sem equipamento para puxar o colega.',
-          'Acionar a equipe de resgate/emergência e permanecer em seu posto mantendo a monitoração externa.',
-          'Fechar a tampa de acesso para conter gases.',
-          'Injetar oxigênio puro dentro do tanque.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr33-q4',
-        courseId: 'nr-33',
-        order: 4,
-        prompt: 'Por que a medição atmosférica deve ser feita no topo, meio e fundo do espaço confinado?',
-        options: [
-          'Apenas para gastar bateria do aparelho.',
-          'Porque diferentes gases têm densidades distintas e podem se acumular no topo (metano), no meio (CO) ou no fundo (H2S).',
-          'Para verificar a temperatura da parede metálica.',
-          'Não é necessário medir no fundo, apenas na boca de visita.',
-        ],
-        correctIndex: 1,
-      },
-    ],
-  },
-  {
-    course: {
-      id: 'nr-12',
-      slug: 'nr-12',
-      nrCode: 'NR-12',
-      title: 'Segurança no Trabalho em Máquinas e Equipamentos',
-      salesHeadline:
-        'Capacitação NR-12 completa para operar e manter máquinas industriais com segurança e respaldo legal',
-      salesSubheadline:
-        'Proteções fixas e móveis, intertravamentos, parada de emergência e bloqueio LOTO em um curso direto ao ponto, com emissão rápida de certificado em PDF.',
-      promoTag: 'Condição promocional · Indústria & Manutenção',
-      originalPriceCents: 15900,
-      priceCents: 9900,
-      enrolledCount: 1120,
-      ratingAverage: 4.8,
-      ratingCount: 196,
-      guaranteeDays: 7,
-      shortDescription:
-        'Proteções fixas e móveis, dispositivos de parada de emergência, bloqueio LOTO e operação segura de máquinas industriais.',
-      fullDescription:
-        'A NR-12 define referências técnicas, princípios fundamentais e medidas de proteção para resguardar a saúde e a integridade física dos trabalhadores na operação, manutenção, limpeza e ajuste de máquinas e equipamentos. O curso aborda zonas de perigo, proteções mecânicas, cortinas de luz, comandos bimanuais, botões de emergência e bloqueio de fontes de energia.',
-      workloadHours: 8,
-      certificateValidityMonths: 24,
-      targetAudience:
-        'Operadores de máquinas CNC, prensas, injetoras, tornos, serras, mecânicos de manutenção industrial e supervisores de produção.',
-      notForAudience: [
-        'Quem deseja burlar procedimentos de segurança ou neutralizar sensores de fábrica',
-        'Projetistas buscando exclusivamente dimensionamento elétrico SIL/PLr de painéis',
-      ],
-      includedBonuses: [
-        'Fluxograma de Bloqueio e Etiquetagem (LOTO) passo a passo',
-        'Checklist diário de inspeção de proteções e botão de emergência',
-      ],
-      learningOutcomes: [
-        'Reconhecer riscos mecânicos, elétricos e térmicos em zonas de operação',
-        'Compreender o funcionamento de proteções fixas, intertravamentos e sensores ópticos',
-        'Aplicar corretamente os dispositivos de parada de emergência e rearme seguro',
-        'Executar procedimentos de bloqueio e etiquetagem (LOTO) em intervenções e limpeza',
-      ],
-      faq: [
-        {
-          question: 'Posso burlar um sensor de intertravamento para agilizar a produção?',
-          answer:
-            'Nunca. A neutralização de dispositivos de segurança é proibida pela NR-12 e expõe o operador a risco grave de amputação ou esmagamento.',
-        },
-        {
-          question: 'O certificado da NR-12 serve para operadores e mecânicos?',
-          answer:
-            'Sim. Abrange operação segura, limpeza, inspeção e bloqueio de energias para manutenção conforme a NR-12.',
-        },
-      ],
-      coverImageUrl: NR12_COVER_URL,
-      bannerImageUrl: NR12_COVER_URL,
-      instructorName: 'Eng. Carlos Eduardo Mendes',
-      instructorRole: 'Engenheiro de Segurança do Trabalho',
-      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
-      status: 'published',
-      displayOrder: 3,
-      passingScore: 70,
-    },
-    modules: [
-      {
-        id: 'nr-12-m1',
-        courseId: 'nr-12',
-        title: 'Módulo 1 · Sistemas de Segurança e Proteções NR-12',
-        description: 'Arranjo físico, proteções fixas/móveis, intertravamento e parada de emergência.',
-        order: 1,
-        lessons: [
-          {
-            id: 'nr12-l1',
-            title: 'Zonas de Perigo, Proteções e Dispositivos de Segurança',
-            type: 'text',
-            durationMinutes: 55,
-            order: 1,
-            content:
-              'As máquinas devem possuir sistemas de segurança que garantam proteção à saúde e integridade física nos momentos de operação, manutenção e limpeza.\n\nOrdem de prioridade das medidas de proteção:\n1. Medidas de proteção coletiva (enclausuramento, proteções fixas e móveis intertravadas, cortinas de luz).\n2. Medidas administrativas ou de organização do trabalho.\n3. Medidas de proteção individual (EPI).\n\nOs dispositivos de parada de emergência (botão tipo cogumelo vermelho sobre fundo amarelo) devem permanecer sempre desobstruídos, facilmente acessíveis e NÃO devem ser usados como botão de desligamento rotineiro.',
-          },
-          {
-            id: 'nr12-l2',
-            title: 'Procedimentos de Manutenção, Limpeza e Bloqueio (LOTO)',
-            type: 'text',
-            durationMinutes: 50,
-            order: 2,
-            content:
-              'Qualquer intervenção para limpeza, lubrificação, ajuste ou manutenção deve ocorrer com a máquina parada e suas fontes de energia (elétrica, pneumática, hidráulica) isoladas, bloqueadas com cadeado individual e etiquetadas.\n\nAntes de iniciar a intervenção, deve-se realizar o teste de energia zero para assegurar que não há energia residual armazenada.',
-          },
-        ],
-      },
-    ],
-    questions: [
-      {
-        id: 'nr12-q1',
-        courseId: 'nr-12',
-        order: 1,
-        prompt: 'Qual a ordem de prioridade das medidas de proteção estabelecida pela NR-12?',
-        options: [
-          'EPI primeiro, depois medidas administrativas e por último proteção coletiva.',
-          'Medidas de proteção coletiva primeiro, depois administrativas/organização do trabalho e por último EPI.',
-          'Apenas treinamento verbal substitui a proteção coletiva.',
-          'Uso exclusivo de botão de emergência sem carenagem.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr12-q2',
-        courseId: 'nr-12',
-        order: 2,
-        prompt: 'Sobre o botão de parada de emergência em máquinas NR-12, é correto afirmar:',
-        options: [
-          'Deve ser utilizado para desligar a máquina no fim do expediente.',
-          'Deve ser posicionado em local visível, desobstruído e nunca utilizado como chave geral de rotina.',
-          'Pode ficar trancado dentro do painel elétrico.',
-          'Ao ser solto, deve religar a máquina automaticamente.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr12-q3',
-        courseId: 'nr-12',
-        order: 3,
-        prompt: 'Qual procedimento é obrigatório antes de realizar limpeza ou ajuste na zona de perigo de uma máquina?',
-        options: [
-          'Apenas reduzir a rotação do motor.',
-          'Pedir a um colega para segurar a chave liga/desliga.',
-          'Desenergizar, realizar o bloqueio e etiquetagem (LOTO) das fontes de energia e testar energia zero.',
-          'Usar apenas luva de vaqueta com a máquina em movimento.',
-        ],
-        correctIndex: 2,
-      },
-    ],
-  },
-  {
-    course: {
-      id: 'nr-18',
-      slug: 'nr-18',
-      nrCode: 'NR-18',
-      title: 'Segurança na Indústria da Construção',
-      salesHeadline:
-        'Integração e capacitação NR-18 para liberar sua entrada em canteiros de obras com certificado verificado',
-      salesSubheadline:
-        'Aprenda as exigências da nova NR-18 e do PGR de obras: guarda-corpos, escavações, andaimes e instalações elétricas temporárias.',
-      promoTag: 'Condição promocional · Construção Civil',
-      originalPriceCents: 15900,
-      priceCents: 9900,
-      enrolledCount: 1380,
-      ratingAverage: 4.9,
-      ratingCount: 229,
-      guaranteeDays: 7,
-      shortDescription:
-        'Diretrizes da nova NR-18 e PGR na construção civil: escavações, andaimes, proteção contra quedas, eletricidade e canteiro.',
-      fullDescription:
-        'Voltado para profissionais de obras e engenharia, o curso de NR-18 apresenta as diretrizes de prevenção de acidentes na Indústria da Construção. Inclui Programa de Gerenciamento de Riscos (PGR) do canteiro, escavações e fundações, carpintaria e armação, instalações elétricas temporárias, movimentação de cargas, andaimes e proteções coletivas de periferia.',
-      workloadHours: 8,
-      certificateValidityMonths: 24,
-      targetAudience:
-        'Pedreiros, serventes, carpinteiros, armadores, mestres de obras, engenheiros civis e técnicos de segurança em canteiros.',
-      notForAudience: [
-        'Profissionais que atuam exclusivamente em atividades administrativas fora de canteiros de obras',
-      ],
-      includedBonuses: [
-        'Tabela de medidas regulamentares de Guarda-Corpo e Rodapé (GcR)',
-        'Checklist de conformidade para andaimes e quadros elétricos de obra',
-      ],
-      learningOutcomes: [
-        'Compreender a integração do PGR na construção civil conforme a nova NR-18',
-        'Inspecionar guarda-corpos de periferia, bandejas de proteção e andaimes',
-        'Aplicar medidas preventivas em escavações, taludes e escoramentos',
-        'Controlar riscos em serras circulares, betoneiras e quadros elétricos de obra',
-      ],
-      faq: [
-        {
-          question: 'O curso atende o treinamento admissional na construção civil?',
-          answer:
-            'Sim. Cobre a carga horária teórica exigida para capacitação inicial e reciclagem de trabalhadores em canteiros de obras.',
-        },
-        {
-          question: 'Qual a validade do certificado NR-18?',
-          answer:
-            'O certificado possui validade de 24 meses e código verificável para apresentação imediata no canteiro.',
-        },
-      ],
-      coverImageUrl: NR18_COVER_URL,
-      bannerImageUrl: NR18_COVER_URL,
-      instructorName: 'Eng. Carlos Eduardo Mendes',
-      instructorRole: 'Engenheiro de Segurança do Trabalho',
-      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
-      status: 'published',
-      displayOrder: 4,
-      passingScore: 70,
-    },
-    modules: [
-      {
-        id: 'nr-18-m1',
-        courseId: 'nr-18',
-        title: 'Módulo 1 · PGR no Canteiro, Escavações e Proteções Coletivas',
-        description: 'Organização do canteiro, guarda-corpo padrão, andaimes e escavações.',
-        order: 1,
-        lessons: [
-          {
-            id: 'nr18-l1',
-            title: 'Sistema de Guarda-Corpo e Rodapé (GcR) e Periferias',
-            type: 'text',
-            durationMinutes: 50,
-            order: 1,
-            content:
-              'É obrigatória a instalação de proteção coletiva onde houver risco de queda de trabalhadores ou de projeção de materiais.\n\nPadrão dimensional do Guarda-Corpo e Rodapé:\n• Travessão superior: 1,20 m de altura.\n• Travessão intermediário: 0,70 m de altura.\n• Rodapé: altura mínima de 0,15 m (15 cm).\n• Vão entre travessões fechado com tela resistente.\n\nAberturas no piso (como vãos de elevador) devem possuir fechamento provisório resistente ou guarda-corpo fixado de modo seguro.',
-          },
-          {
-            id: 'nr18-l2',
-            title: 'Segurança em Escavações, Andaimes e Instalações Elétricas',
-            type: 'text',
-            durationMinutes: 55,
-            order: 2,
-            content:
-              'Escavações com profundidade superior a 1,25 m devem dispor de escadas ou rampas próximas aos postos de trabalho para saída rápida em emergência, além de escoramento ou taludamento conforme projeto.\n\nOs andaimes devem possuir piso de trabalho com forração completa, antiderrapante, nivelado e travado, além de guarda-corpo e rodapé em todo o perímetro.\n\nQuadros elétricos temporários devem estar aterrados, sinalizados, trancados e equipados com Dispositivo Diferencial Residual (DR).',
-          },
-        ],
-      },
-    ],
-    questions: [
-      {
-        id: 'nr18-q1',
-        courseId: 'nr-18',
-        order: 1,
-        prompt: 'Quais são as alturas regulamentares do travessão superior, travessão intermediário e rodapé de um guarda-corpo na NR-18?',
-        options: [
-          '0,90 m, 0,45 m e 0,10 m.',
-          '1,20 m (superior), 0,70 m (intermediário) e mínimo de 0,15 m (rodapé).',
-          '1,50 m, 1,00 m e 0,05 m.',
-          'Não há medida mínima definida na norma.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr18-q2',
-        courseId: 'nr-18',
-        order: 2,
-        prompt: 'A partir de qual profundidade escavações exigem escadas ou rampas para saída rápida dos trabalhadores?',
-        options: [
-          'Superior a 0,50 m.',
-          'Superior a 1,25 m.',
-          'Apenas acima de 3,50 m.',
-          'Somente em escavações com água.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr18-q3',
-        courseId: 'nr-18',
-        order: 3,
-        prompt: 'Qual dispositivo elétrico de proteção contra choques é obrigatório nos circuitos de obra da NR-18?',
-        options: [
-          'Apenas fita isolante dupla.',
-          'Dispositivo Diferencial Residual (DR) e aterramento adequado.',
-          'Chave faca aberta.',
-          'Extensão sem pino terra.',
-        ],
-        correctIndex: 1,
-      },
-    ],
-  },
-  {
-    course: {
-      id: 'nr-06',
-      slug: 'nr-06',
-      nrCode: 'NR-06',
-      title: 'Equipamentos de Proteção Individual (EPI)',
-      salesHeadline:
-        'Comprove sua capacitação em NR-06 (EPIs) em poucas horas com certificado reconhecido em todo o país',
-      salesSubheadline:
-        'Entenda Certificado de Aprovação (CA), responsabilidades legais, conservação e escolha correta dos EPIs obrigatórios com emissão imediata de PDF.',
-      promoTag: 'Mais acessível · Obrigatório em quase todas as integrações',
-      originalPriceCents: 11900,
-      priceCents: 6900,
-      enrolledCount: 3190,
-      ratingAverage: 4.9,
-      ratingCount: 512,
-      guaranteeDays: 7,
-      shortDescription:
-        'Seleção técnica, Certificado de Aprovação (CA), guarda, higienização e responsabilidades legais sobre o uso de EPIs.',
-      fullDescription:
-        'O curso de NR-06 orienta trabalhadores, encarregados e técnicos sobre a correta indicação, uso, conservação e substituição dos Equipamentos de Proteção Individual. Aborda a validade do Certificado de Aprovação (CA), responsabilidades do empregador e do empregado, ficha de entrega de EPI e proteção específica para cabeça, olhos, audição, vias respiratórias, mãos e pés.',
-      workloadHours: 4,
-      certificateValidityMonths: 24,
-      targetAudience:
-        'Todos os trabalhadores da indústria, construção civil, logística, serviços gerais, almoxarifes e profissionais de SESMT/CIPA.',
-      notForAudience: [
-        'Quem não atua ou não pretende atuar em ambientes sujeitos a requisitos de SST',
-      ],
-      includedBonuses: [
-        'Guia rápido de consulta de Certificado de Aprovação (CA) ativo',
-        'Modelo de Ficha de Controle e Entrega de EPI',
-      ],
-      learningOutcomes: [
-        'Verificar a autenticidade e validade do Certificado de Aprovação (CA)',
-        'Distinguir responsabilidades do empregador, do trabalhador e do fabricante',
-        'Selecionar o EPI adequado para riscos físicos, químicos e mecânicos',
-        'Executar corretamente a higienização, guarda e descarte de EPIs danificados',
-      ],
-      faq: [
-        {
-          question: 'A empresa pode cobrar do funcionário pelo EPI fornecido?',
-          answer:
-            'Não. A NR-06 determina que o empregador deve fornecer o EPI gratuitamente ao empregado, em perfeito estado de conservação e funcionamento.',
-        },
-        {
-          question: 'O certificado de NR-06 tem validade para ficha de integração?',
-          answer:
-            'Sim. Inclui carga horária de 4h, conteúdo programático completo e código verificável.',
-        },
-      ],
-      coverImageUrl: NR06_COVER_URL,
-      bannerImageUrl: NR06_COVER_URL,
-      instructorName: 'Eng. Carlos Eduardo Mendes',
-      instructorRole: 'Engenheiro de Segurança do Trabalho',
-      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
-      status: 'published',
-      displayOrder: 5,
-      passingScore: 70,
-    },
-    modules: [
-      {
-        id: 'nr-06-m1',
-        courseId: 'nr-06',
-        title: 'Módulo Único · Conceitos, CA e Responsabilidades na NR-06',
-        description: 'Obrigações legais, Certificado de Aprovação e proteção por região anatômica.',
-        order: 1,
-        lessons: [
-          {
-            id: 'nr06-l1',
-            title: 'Certificado de Aprovação (CA) e Obrigações Legais',
-            type: 'text',
-            durationMinutes: 45,
-            order: 1,
-            content:
-              'Considera-se Equipamento de Proteção Individual (EPI) todo dispositivo ou produto de uso individual utilizado pelo trabalhador, destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho.\n\nTodo EPI comercializado ou utilizado no Brasil deve possuir Certificado de Aprovação (CA) emitido pelo órgão nacional competente.\n\nCabe ao empregador:\n• Adquirir o EPI adequado ao risco de cada atividade.\n• Exigir seu uso e fornecer gratuitamente ao trabalhador.\n• Orientar e treinar o trabalhador sobre o uso adequado, guarda e conservação.\n• Substituir imediatamente quando danificado ou extraviado.\n• Registrar o fornecimento ao empregado (ficha de EPI física ou eletrônica).\n\nCabe ao empregado:\n• Usar o EPI apenas para a finalidade a que se destina.\n• Responsabilizar-se pela guarda e conservação.\n• Comunicar ao empregador qualquer alteração que o torne impróprio para uso.',
-          },
-        ],
-      },
-    ],
-    questions: [
-      {
-        id: 'nr06-q1',
-        courseId: 'nr-06',
-        order: 1,
-        prompt: 'O que garante que um EPI foi testado e autorizado para comercialização e uso no Brasil?',
-        options: [
-          'A cor do equipamento.',
-          'O Certificado de Aprovação (CA) válido gravado no equipamento.',
-          'Apenas o logotipo da empresa compradora.',
-          'Um selo adesivo da transportadora.',
-        ],
-        correctIndex: 1,
-      },
-      {
-        id: 'nr06-q2',
-        courseId: 'nr-06',
-        order: 2,
-        prompt: 'De quem é a responsabilidade pelo fornecimento gratuito e substituição imediata de EPI danificado?',
-        options: [
-          'Do sindicato da categoria.',
-          'Do próprio empregado, mediante desconto em folha.',
-          'Do empregador.',
-          'Da prefeitura municipal.',
-        ],
-        correctIndex: 2,
-      },
-      {
-        id: 'nr06-q3',
-        courseId: 'nr-06',
-        order: 3,
-        prompt: 'Qual é uma obrigação legal do empregado em relação ao EPI segundo a NR-06?',
-        options: [
-          'Comprar o próprio capacete e botina na admissão.',
-          'Utilizá-lo apenas quando houver fiscalização na obra.',
-          'Responsabilizar-se pela guarda e conservação e comunicar qualquer dano que o torne impróprio para uso.',
-          'Alterar o formato do EPI para maior conforto térmico.',
-        ],
-        correctIndex: 2,
-      },
-    ],
-  },
 ];
 
 export const SEED_FUNNEL_OFFERS: Omit<FunnelOffer, 'updatedAt'>[] = [
@@ -831,6 +1597,21 @@ export const SEED_FUNNEL_OFFERS: Omit<FunnelOffer, 'updatedAt'>[] = [
     displayOrder: 1,
   },
   {
+    id: 'bump-nr23-para-nr20',
+    type: 'order_bump',
+    title: 'Adicionar NR-23 – Combate a Incêndio (4h) com 44% OFF',
+    subtitle: 'Complemento direto para quem atua com inflamáveis',
+    description:
+      'Complete sua capacitação de NR-20 adicionando NR-23 Combate a Incêndio por apenas R$ 49,00 e domine seleção de extintores e evacuação de emergência.',
+    triggerCourseId: 'nr-20',
+    includedCourseIds: ['nr-23'],
+    originalPriceCents: 8900,
+    offerPriceCents: 4900,
+    badgeLabel: 'Recomendado junto com NR-20',
+    active: true,
+    displayOrder: 2,
+  },
+  {
     id: 'bump-nr35-para-nr33',
     type: 'order_bump',
     title: 'Adicionar NR-35 – Trabalho em Altura (8h) com desconto',
@@ -843,7 +1624,7 @@ export const SEED_FUNNEL_OFFERS: Omit<FunnelOffer, 'updatedAt'>[] = [
     offerPriceCents: 7900,
     badgeLabel: 'Recomendado junto com NR-33',
     active: true,
-    displayOrder: 2,
+    displayOrder: 3,
   },
   {
     id: 'upsell-nr33-pos-nr35',
@@ -858,7 +1639,7 @@ export const SEED_FUNNEL_OFFERS: Omit<FunnelOffer, 'updatedAt'>[] = [
     offerPriceCents: 8900,
     badgeLabel: 'Oferta única pós-compra',
     active: true,
-    displayOrder: 3,
+    displayOrder: 4,
   },
   {
     id: 'upsell-nr35-pos-geral',
@@ -873,7 +1654,7 @@ export const SEED_FUNNEL_OFFERS: Omit<FunnelOffer, 'updatedAt'>[] = [
     offerPriceCents: 6900,
     badgeLabel: 'Oferta única pós-compra',
     active: true,
-    displayOrder: 4,
+    displayOrder: 5,
   },
   {
     id: 'combo-seguranca-completa',
@@ -888,22 +1669,37 @@ export const SEED_FUNNEL_OFFERS: Omit<FunnelOffer, 'updatedAt'>[] = [
     offerPriceCents: 22900,
     badgeLabel: 'Pacote mais vantajoso · Economize R$ 108',
     active: true,
-    displayOrder: 5,
+    displayOrder: 6,
   },
   {
-    id: 'combo-obra-altura',
+    id: 'combo-industria-eletrica',
     type: 'combo',
-    title: 'Combo Obra & Altura · NR-35 + NR-18',
-    subtitle: '16 horas totais · Ideal para Construção Civil',
+    title: 'Combo Indústria & Elétrica · NR-10 Básico + NR-12 + NR-11',
+    subtitle: '56 horas totais · 3 Certificados Digitais Oficiais',
     description:
-      'Capacitação completa para canteiros de obras, fachadas, telhados e montagens estruturais com dois certificados verificáveis.',
-    triggerCourseId: 'nr-18',
-    includedCourseIds: ['nr-35', 'nr-18'],
-    originalPriceCents: 21800,
-    offerPriceCents: 15900,
-    badgeLabel: 'Pacote Construção · Economize R$ 59',
+      'Formação estratégica para eletricistas, mantenedores industriais e operadores logísticos. Reúne Eletricidade NR-10 (40h), Máquinas NR-12 (8h) e Movimentação de Materiais NR-11 (8h).',
+    triggerCourseId: 'all',
+    includedCourseIds: ['nr-10', 'nr-12', 'nr-11'],
+    originalPriceCents: 39700,
+    offerPriceCents: 26900,
+    badgeLabel: 'Pacote Indústria · Economize R$ 128',
     active: true,
-    displayOrder: 6,
+    displayOrder: 7,
+  },
+  {
+    id: 'combo-prevencao-emergencia',
+    type: 'combo',
+    title: 'Combo Prevenção & Obra · NR-20 + NR-23 + NR-18',
+    subtitle: '20 horas totais · 3 Certificados Digitais Oficiais',
+    description:
+      'Ideal para equipes de segurança patrimonial, obras industriais, depósitos e combate a emergências com inflamáveis e incêndios.',
+    triggerCourseId: 'all',
+    includedCourseIds: ['nr-20', 'nr-23', 'nr-18'],
+    originalPriceCents: 31700,
+    offerPriceCents: 21900,
+    badgeLabel: 'Pacote Prevenção · Economize R$ 98',
+    active: true,
+    displayOrder: 8,
   },
 ];
 
@@ -922,14 +1718,14 @@ export const SEED_TESTIMONIALS: Omit<Testimonial, 'updatedAt'>[] = [
     displayOrder: 1,
   },
   {
-    id: 'test-nr35-2',
-    courseId: 'nr-35',
-    authorName: 'Rafael Almeida Duarte',
-    authorRole: 'Instalador Solar Autônomo',
-    company: 'Duarte Energia Fotovoltaica',
+    id: 'test-nr10-1',
+    courseId: 'nr-10',
+    authorName: 'Eduardo Siqueira Lima',
+    authorRole: 'Eletrotécnico Industrial',
+    company: 'EletroSul Manutenção',
     rating: 5,
     quote:
-      'Antes eu perdia dois dias de serviço para renovar NR-35 presencial. Aqui estudei à noite pelo celular, fiz a prova formal de ZLQ e fator de queda e baixei meu PDF assinado na hora.',
+      'O curso NR-10 Básico de 40h explica os 6 passos de desenergização e Zonas de Risco com clareza impressionante. Emiti meu certificado com registro CREA do engenheiro no mesmo dia da prova.',
     verifiedPurchase: true,
     active: true,
     displayOrder: 2,
@@ -942,20 +1738,20 @@ export const SEED_TESTIMONIALS: Omit<Testimonial, 'updatedAt'>[] = [
     company: 'Metalúrgica São Bento',
     rating: 5,
     quote:
-      'O módulo de detector multigás e PET da NR-33 é muito claro e técnico. O certificado saiu com o CREA do engenheiro responsável e foi aprovado imediatamente pela nossa auditoria de SESMT.',
+      'O módulo de detector multigás e PET da NR-33 é muito claro e técnico. Também treinamos nossa brigada na NR-23 e os operadores na NR-11 com total aprovação do nosso SESMT.',
     verifiedPurchase: true,
     active: true,
     displayOrder: 3,
   },
   {
-    id: 'test-nr33-2',
-    courseId: 'nr-33',
-    authorName: 'Júlio César Nogueira',
-    authorRole: 'Caldeireiro Industrial',
-    company: 'Serviços Industriais Paulista',
+    id: 'test-nr35-2',
+    courseId: 'nr-35',
+    authorName: 'Rafael Almeida Duarte',
+    authorRole: 'Instalador Solar Autônomo',
+    company: 'Duarte Energia Fotovoltaica',
     rating: 5,
     quote:
-      'Comprei a NR-35 e aproveitei o desconto da NR-33 na sequência. Consegui apresentar os dois certificados para uma parada de manutenção em refinaria no mesmo fim de semana.',
+      'Antes eu perdia dois dias de serviço para renovar NR-35 presencial. Aqui estudei à noite pelo celular, fiz a prova formal de ZLQ e fator de queda e baixei meu PDF assinado na hora.',
     verifiedPurchase: true,
     active: true,
     displayOrder: 4,

@@ -29,30 +29,50 @@ export function Footer({ settings }: { settings: PublicSettings }) {
 
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-white">Treinamentos NR</h3>
-            <ul className="space-y-2.5 text-sm text-slate-300">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-300">
               <li>
-                <Link to="/cursos/nr-35" className="hover:text-[#F5C518] transition-colors">
-                  NR-35 · Trabalho em Altura
+                <Link to="/cursos/nr-06" className="hover:text-[#F5C518] transition-colors">
+                  NR-06 · EPIs
                 </Link>
               </li>
               <li>
-                <Link to="/cursos/nr-33" className="hover:text-[#F5C518] transition-colors">
-                  NR-33 · Espaços Confinados
+                <Link to="/cursos/nr-10" className="hover:text-[#F5C518] transition-colors">
+                  NR-10 · Eletricidade
+                </Link>
+              </li>
+              <li>
+                <Link to="/cursos/nr-11" className="hover:text-[#F5C518] transition-colors">
+                  NR-11 · Cargas
                 </Link>
               </li>
               <li>
                 <Link to="/cursos/nr-12" className="hover:text-[#F5C518] transition-colors">
-                  NR-12 · Máquinas e Equipamentos
+                  NR-12 · Máquinas
                 </Link>
               </li>
               <li>
                 <Link to="/cursos/nr-18" className="hover:text-[#F5C518] transition-colors">
-                  NR-18 · Indústria da Construção
+                  NR-18 · Construção
                 </Link>
               </li>
               <li>
-                <Link to="/cursos/nr-06" className="hover:text-[#F5C518] transition-colors">
-                  NR-06 · EPIs
+                <Link to="/cursos/nr-20" className="hover:text-[#F5C518] transition-colors">
+                  NR-20 · Inflamáveis
+                </Link>
+              </li>
+              <li>
+                <Link to="/cursos/nr-23" className="hover:text-[#F5C518] transition-colors">
+                  NR-23 · Incêndio
+                </Link>
+              </li>
+              <li>
+                <Link to="/cursos/nr-33" className="hover:text-[#F5C518] transition-colors">
+                  NR-33 · Confinado
+                </Link>
+              </li>
+              <li>
+                <Link to="/cursos/nr-35" className="hover:text-[#F5C518] transition-colors">
+                  NR-35 · Altura
                 </Link>
               </li>
             </ul>
@@ -75,6 +95,11 @@ export function Footer({ settings }: { settings: PublicSettings }) {
                 <Link to="/empresas" className="hover:text-[#F5C518] transition-colors">
                   Treinamento para Empresas
                 </Link>
+              </li>
+              <li>
+                <a href="/#documentacao" className="hover:text-[#F5C518] transition-colors">
+                  APR e PGR Online
+                </a>
               </li>
             </ul>
           </div>

@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   Download,
   ExternalLink,
+  FileCheck2,
   FileText,
   Layers,
   LogOut,
@@ -15,6 +16,7 @@ import {
   Video,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SafetyDocsSection } from '../components/SafetyDocsSection';
 import { useAuth } from '../context/AuthContext';
 import {
   fetchCourseBySlug,
@@ -26,6 +28,7 @@ import {
   fetchUserCertificates,
   fetchUserEnrollments,
   fetchUserOrders,
+  fetchUserSafetyDocRequests,
   saveCertificateRecord,
   updateEnrollmentProgress,
 } from '../lib/firestoreService';
@@ -40,6 +43,7 @@ import type {
   FunnelOffer,
   Order,
   PublicSettings,
+  SafetyDocRequest,
 } from '../types';
 
 interface ServerVerifiedGrant {
@@ -71,6 +75,8 @@ export function StudentAreaPage() {
   const [firestoreEnrollmentIds, setFirestoreEnrollmentIds] = useState<Set<string>>(new Set());
   const [orders, setOrders] = useState<Order[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [safetyDocs, setSafetyDocs] = useState<SafetyDocRequest[]>([]);
+  const [showDocGenerator, setShowDocGenerator] = useState(false);
   const [catalogCourses, setCatalogCourses] = useState<Course[]>([]);
   const [combos, setCombos] = useState<FunnelOffer[]>([]);
   const [settings, setSettings] = useState<PublicSettings | null>(null);
@@ -93,10 +99,11 @@ export function StudentAreaPage() {
     if (!user) return;
     setLoadingData(true);
     try {
-      const [enrs, ords, certs, pub, allCourses, offers, grantsRes] = await Promise.all([
+      const [enrs, ords, certs, sDocs, pub, allCourses, offers, grantsRes] = await Promise.all([
         fetchUserEnrollments(user.uid),
         fetchUserOrders(user.uid),
         fetchUserCertificates(user.uid),
+        fetchUserSafetyDocRequests(user.uid).catch(() => []),
         fetchPublicSettings(),
         fetchPublishedCourses(),
         fetchFunnelOffers(true),
@@ -140,6 +147,7 @@ export function StudentAreaPage() {
       setEnrollments(merged);
       setOrders(ords);
       setCertificates(certs);
+      setSafetyDocs(sDocs);
       setSettings(pub);
       setCatalogCourses(allCourses);
       setCombos(offers.filter((o) => o.type === 'combo'));
@@ -1019,6 +1027,83 @@ export function StudentAreaPage() {
             </div>
           </section>
         )}
+
+        {/* APR & PGR Technical Documentation inside Student Area */}
+        <section id="documentacao-aluno" className="space-y-5 pt-6 border-t border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-mono font-bold text-[#0F2C59] uppercase tracking-wider">
+                Serviços de Documentação SST
+              </p>
+              <h2 className="font-display text-xl font-bold text-[#0A2540] mt-0.5">
+                Minhas APRs & Solicitações de PGR
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDocGenerator((prev) => !prev)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0A2540] hover:bg-[#0F2C59] text-white text-xs font-bold rounded-lg cursor-pointer self-start sm:self-auto"
+            >
+              <FileCheck2 className="w-4 h-4 text-[#F5C518]" />
+              {showDocGenerator ? 'Ocultar formulário APR/PGR' : 'Gerar APR / Solicitar PGR'}
+            </button>
+          </div>
+
+          {safetyDocs.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {safetyDocs.map((docItem) => (
+                <div
+                  key={docItem.id}
+                  className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between gap-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-mono font-bold text-[#0F2C59] uppercase">
+                        {docItem.docType === 'apr' ? 'APR Automática' : 'PGR Personalizado'} · {docItem.id}
+                      </span>
+                      <h3 className="font-display font-bold text-sm text-[#0A2540] mt-1">
+                        {docItem.docType === 'apr'
+                          ? docItem.serviceDescription || 'Análise Preliminar de Risco'
+                          : `${docItem.companyName || 'Empresa'} (${docItem.cnpj || ''})`}
+                      </h3>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-emerald-700 shrink-0">
+                      {docItem.status === 'generated'
+                        ? 'Gerada'
+                        : docItem.status === 'completed'
+                          ? 'Concluído'
+                          : 'Em análise'}
+                    </span>
+                  </div>
+
+                  {docItem.aprPdfUrl && (
+                    <a
+                      href={docItem.aprPdfUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] text-xs font-extrabold rounded-lg self-start"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Baixar APR em PDF
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {showDocGenerator && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8">
+              <SafetyDocsSection
+                compact
+                userId={user.uid}
+                defaultName={profile?.name || user.displayName || ''}
+                defaultEmail={user.email || ''}
+                onSubmitted={() => loadStudentData()}
+              />
+            </div>
+          )}
+        </section>
 
         {/* Recommended Next NRs & Combos */}
         {(recommendedCourses.length > 0 || recommendedCombos.length > 0) && (

@@ -218,3 +218,28 @@ export interface IntegrationSettings {
   infinitePayHandle: string;
   updatedAt: unknown;
 }
+
+export type SafetyDocType = 'apr' | 'pgr';
+export type SafetyDocStatus = 'generated' | 'pending_review' | 'completed';
+
+export interface SafetyDocRequest {
+  id: string;
+  docType: SafetyDocType;
+  userId?: string;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone?: string;
+  companyName?: string;
+  cnpj?: string;
+  cnpjCardUrl?: string;
+  serviceDescription?: string;
+  workAtHeight?: boolean;
+  equipmentList?: string;
+  workersInvolved?: string;
+  aprPdfUrl?: string;
+  risksDescription?: string;
+  employeeCount?: number;
+  status: SafetyDocStatus;
+  createdAt: unknown;
+}
+

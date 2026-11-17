@@ -184,7 +184,7 @@ export function CorporatePage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-2">Cursos de interesse *</label>
                   <div className="flex flex-wrap gap-2">
-                    {['NR-06', 'NR-12', 'NR-18', 'NR-33', 'NR-35'].map((nr) => (
+                    {['NR-06', 'NR-10', 'NR-11', 'NR-12', 'NR-18', 'NR-20', 'NR-23', 'NR-33', 'NR-35'].map((nr) => (
                       <button
                         key={nr}
                         type="button"

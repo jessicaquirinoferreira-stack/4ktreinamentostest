@@ -5,6 +5,7 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  FileCheck2,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -32,6 +33,7 @@ import {
   fetchAllCoursesAdmin,
   fetchAllEnrollmentsAdmin,
   fetchAllOrdersAdmin,
+  fetchAllSafetyDocRequestsAdmin,
   fetchAllUsersAdmin,
   fetchCorporateQuotesAdmin,
   fetchCourseModules,
@@ -48,6 +50,7 @@ import {
   saveTestimonialAdmin,
   seedInitialDatabaseIfEmpty,
   updateOrderStatusAdmin,
+  updateSafetyDocStatusAdmin,
   uploadFileToVercelBlob,
 } from '../lib/firestoreService';
 import type {
@@ -62,6 +65,8 @@ import type {
   FunnelOfferType,
   Order,
   PublicSettings,
+  SafetyDocRequest,
+  SafetyDocStatus,
   Testimonial,
   UserProfile,
 } from '../types';
@@ -76,6 +81,7 @@ type AdminTab =
   | 'students'
   | 'certificates'
   | 'quotes'
+  | 'safetyDocs'
   | 'settings';
 
 export function AdminPage() {
@@ -96,6 +102,7 @@ export function AdminPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [quotes, setQuotes] = useState<CorporateQuote[]>([]);
+  const [safetyDocs, setSafetyDocs] = useState<SafetyDocRequest[]>([]);
   const [settings, setSettings] = useState<PublicSettings>({ ...DEFAULT_PUBLIC_SETTINGS, updatedAt: null });
   const [infinitePayHandle, setInfinitePayHandle] = useState('');
   const [blobConfigured, setBlobConfigured] = useState(false);
@@ -158,18 +165,20 @@ export function AdminPage() {
       }
 
       if (user) {
-        const [ords, enrs, usrs, certs, qts] = await Promise.all([
+        const [ords, enrs, usrs, certs, qts, sDocs] = await Promise.all([
           fetchAllOrdersAdmin().catch(() => []),
           fetchAllEnrollmentsAdmin().catch(() => []),
           fetchAllUsersAdmin().catch(() => []),
           fetchAllCertificatesAdmin().catch(() => []),
           fetchCorporateQuotesAdmin().catch(() => []),
+          fetchAllSafetyDocRequestsAdmin().catch(() => []),
         ]);
         setOrders(ords);
         setEnrollments(enrs);
         setUsers(usrs);
         setCertificates(certs);
         setQuotes(qts);
+        setSafetyDocs(sDocs);
 
         try {
           const intSnap = await getDoc(doc(db, 'settings', 'integrations'));
@@ -223,7 +232,11 @@ export function AdminPage() {
   async function handleSyncSeed() {
     try {
       const count = await seedInitialDatabaseIfEmpty();
-      toast.success(count > 0 ? `${count} cursos iniciais sincronizados no Firestore!` : 'Firestore já contém cursos.');
+      toast.success(
+        count > 0
+          ? `${count} cursos NR sincronizados/atualizados no Firestore!`
+          : 'Todos os 9 cursos NR já estão sincronizados no Firestore.'
+      );
       await loadAllAdminData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao sincronizar cursos.');
@@ -656,6 +669,7 @@ export function AdminPage() {
     { id: 'students', label: 'Alunos', icon: Users },
     { id: 'certificates', label: 'Certificados', icon: Award },
     { id: 'quotes', label: 'Empresas', icon: Building2 },
+    { id: 'safetyDocs', label: 'APR & PGR', icon: FileCheck2 },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ];
 
@@ -2195,6 +2209,128 @@ export function AdminPage() {
                         <td className="py-3 px-4 font-mono text-xs">{q.coursesInterest.join(', ')}</td>
                         <td className="py-3 px-4 text-right font-mono tabular-nums">{q.employeeCount}</td>
                         <td className="py-3 px-4 text-xs font-semibold">{q.status}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: SAFETY DOCS (APR & PGR) */}
+        {tab === 'safetyDocs' && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="font-display text-2xl font-bold text-slate-900">Documentação Técnica (APR & PGR)</h1>
+              <p className="text-sm text-slate-600">
+                Gerencie as APRs geradas automaticamente e as solicitações personalizadas de PGR com Cartão CNPJ.
+              </p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                  <tr>
+                    <th className="py-3 px-4">Tipo / Protocolo</th>
+                    <th className="py-3 px-4">Solicitante / Empresa</th>
+                    <th className="py-3 px-4">Detalhes Técnicos</th>
+                    <th className="py-3 px-4">Anexo / PDF</th>
+                    <th className="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {safetyDocs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-slate-500">
+                        Nenhuma solicitação de APR ou PGR registrada ainda.
+                      </td>
+                    </tr>
+                  ) : (
+                    safetyDocs.map((docItem) => (
+                      <tr key={docItem.id}>
+                        <td className="py-3 px-4 align-top">
+                          <span className="font-mono text-xs font-bold text-[#0A2540] uppercase block">
+                            {docItem.docType === 'apr' ? 'APR Automática' : 'PGR Personalizado'}
+                          </span>
+                          <span className="font-mono text-[11px] text-slate-500">{docItem.id}</span>
+                        </td>
+                        <td className="py-3 px-4 align-top text-xs">
+                          <p className="font-semibold text-slate-900">
+                            {docItem.companyName || docItem.requesterName}
+                          </p>
+                          <p className="text-slate-600">
+                            {docItem.requesterName} · {docItem.requesterEmail}
+                          </p>
+                          {docItem.requesterPhone && <p className="text-slate-500">{docItem.requesterPhone}</p>}
+                          {docItem.cnpj && <p className="font-mono text-slate-700 mt-0.5">CNPJ: {docItem.cnpj}</p>}
+                        </td>
+                        <td className="py-3 px-4 align-top text-xs text-slate-700 max-w-md space-y-1">
+                          {docItem.docType === 'apr' ? (
+                            <>
+                              <p>
+                                <strong>Serviço:</strong> {docItem.serviceDescription}
+                              </p>
+                              <p>
+                                <strong>Altura:</strong> {docItem.workAtHeight ? 'Sim (NR-35)' : 'Não'} ·{' '}
+                                <strong>Equip.:</strong> {docItem.equipmentList}
+                              </p>
+                              <p>
+                                <strong>Colaboradores:</strong> {docItem.workersInvolved}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p>
+                                <strong>Colaboradores:</strong> {docItem.employeeCount || '-'}
+                              </p>
+                              <p>
+                                <strong>Riscos:</strong> {docItem.risksDescription}
+                              </p>
+                            </>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 align-top text-xs whitespace-nowrap space-y-1.5">
+                          {docItem.aprPdfUrl && (
+                            <a
+                              href={docItem.aprPdfUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block font-semibold text-[#0F2C59] underline"
+                            >
+                              Baixar APR PDF
+                            </a>
+                          )}
+                          {docItem.cnpjCardUrl && (
+                            <a
+                              href={docItem.cnpjCardUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block font-semibold text-amber-700 underline"
+                            >
+                              Ver Cartão CNPJ
+                            </a>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 align-top">
+                          <select
+                            value={docItem.status}
+                            onChange={async (e) => {
+                              const nextStatus = e.target.value as SafetyDocStatus;
+                              try {
+                                await updateSafetyDocStatusAdmin(docItem.id, nextStatus);
+                                toast.success('Status atualizado.');
+                                loadAllAdminData();
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Erro ao atualizar status.');
+                              }
+                            }}
+                            className="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold bg-white"
+                          >
+                            <option value="generated">Gerado</option>
+                            <option value="pending_review">Em Análise</option>
+                            <option value="completed">Concluído</option>
+                          </select>
+                        </td>
                       </tr>
                     ))
                   )}

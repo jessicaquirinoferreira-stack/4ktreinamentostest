@@ -15,8 +15,12 @@ import { db, handleFirestoreError, OperationType } from './firebase';
 import {
   DEFAULT_PUBLIC_SETTINGS,
   NR06_COVER_URL,
+  NR10_COVER_URL,
+  NR11_COVER_URL,
   NR12_COVER_URL,
   NR18_COVER_URL,
+  NR20_COVER_URL,
+  NR23_COVER_URL,
   NR33_COVER_URL,
   NR35_COVER_URL,
   SEED_COURSES,
@@ -33,6 +37,8 @@ import type {
   FunnelOffer,
   Order,
   PublicSettings,
+  SafetyDocRequest,
+  SafetyDocStatus,
   Testimonial,
   UserProfile,
 } from '../types';
@@ -44,12 +50,20 @@ const LEGACY_IMAGE_UPGRADES: Record<string, string> = {
   '/src/assets/images/course_nr33_confined_1794852163245.jpg': NR33_COVER_URL,
   '/src/assets/images/nr33_4k_branded_1794853561553.jpg': NR33_COVER_URL,
   '/images/nr33_4k_branded.jpg': NR33_COVER_URL,
-  '/src/assets/images/course_nr12_machinery_1794852161858.jpg': NR12_COVER_URL,
-  '/src/assets/images/nr12_4k_branded_1794853565420.jpg': NR12_COVER_URL,
-  '/images/nr12_4k_branded.jpg': NR12_COVER_URL,
+  '/src/assets/images/nr23_4k_branded_1794918470650.jpg': NR23_COVER_URL,
+  '/images/nr23_4k_branded.jpg': NR23_COVER_URL,
+  '/src/assets/images/nr20_4k_branded_1794918469472.jpg': NR20_COVER_URL,
+  '/images/nr20_4k_branded.jpg': NR20_COVER_URL,
   '/src/assets/images/course_nr18_construction_1794852161695.jpg': NR18_COVER_URL,
   '/src/assets/images/nr18_4k_branded_1794853564817.jpg': NR18_COVER_URL,
   '/images/nr18_4k_branded.jpg': NR18_COVER_URL,
+  '/src/assets/images/course_nr12_machinery_1794852161858.jpg': NR12_COVER_URL,
+  '/src/assets/images/nr12_4k_branded_1794853565420.jpg': NR12_COVER_URL,
+  '/images/nr12_4k_branded.jpg': NR12_COVER_URL,
+  '/src/assets/images/nr11_4k_branded_1794918469511.jpg': NR11_COVER_URL,
+  '/images/nr11_4k_branded.jpg': NR11_COVER_URL,
+  '/src/assets/images/nr10_4k_branded_1794918469807.jpg': NR10_COVER_URL,
+  '/images/nr10_4k_branded.jpg': NR10_COVER_URL,
   '/src/assets/images/course_nr06_epi_1794852161105.jpg': NR06_COVER_URL,
   '/src/assets/images/nr06_4k_branded_1794853562892.jpg': NR06_COVER_URL,
   '/images/nr06_4k_branded.jpg': NR06_COVER_URL,
@@ -91,6 +105,12 @@ export async function fetchPublishedCourses(): Promise<Course[]> {
       return SEED_COURSES.map((b) => ({ ...b.course, createdAt: null, updatedAt: null }));
     }
     const items = snap.docs.map((d) => enrichCourse(d.data() as Course));
+    const existingIds = new Set(items.map((c) => c.id));
+    for (const bundle of SEED_COURSES) {
+      if (!existingIds.has(bundle.course.id) && bundle.course.status === 'published') {
+        items.push({ ...bundle.course, createdAt: null, updatedAt: null });
+      }
+    }
     return items.sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99));
   } catch (error) {
     console.warn('Usando catálogo inicial enquanto Firestore sincroniza:', error);
@@ -105,6 +125,12 @@ export async function fetchAllCoursesAdmin(): Promise<Course[]> {
       return SEED_COURSES.map((b) => ({ ...b.course, createdAt: null, updatedAt: null }));
     }
     const items = snap.docs.map((d) => enrichCourse(d.data() as Course));
+    const existingIds = new Set(items.map((c) => c.id));
+    for (const bundle of SEED_COURSES) {
+      if (!existingIds.has(bundle.course.id)) {
+        items.push({ ...bundle.course, createdAt: null, updatedAt: null });
+      }
+    }
     return items.sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99));
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, 'courses');
@@ -164,6 +190,12 @@ export async function fetchFunnelOffers(onlyActive = true): Promise<FunnelOffer[
       return SEED_FUNNEL_OFFERS.filter((o) => !onlyActive || o.active).map((o) => ({ ...o, updatedAt: null }));
     }
     const items = snap.docs.map((d) => d.data() as FunnelOffer);
+    const existingOfferIds = new Set(items.map((o) => o.id));
+    for (const seedOffer of SEED_FUNNEL_OFFERS) {
+      if (!existingOfferIds.has(seedOffer.id) && (!onlyActive || seedOffer.active)) {
+        items.push({ ...seedOffer, updatedAt: null });
+      }
+    }
     return items.sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99));
   } catch {
     return SEED_FUNNEL_OFFERS.filter((o) => !onlyActive || o.active).map((o) => ({ ...o, updatedAt: null }));
@@ -252,42 +284,62 @@ export async function fetchPublicSettings(): Promise<PublicSettings> {
 export async function seedInitialDatabaseIfEmpty(): Promise<number> {
   let seeded = 0;
   try {
-    const existing = await getDocs(collection(db, 'courses'));
-    if (existing.empty) {
-      for (const bundle of SEED_COURSES) {
-        const courseRef = doc(db, 'courses', bundle.course.id);
+    for (const bundle of SEED_COURSES) {
+      const courseRef = doc(db, 'courses', bundle.course.id);
+      const courseSnap = await getDoc(courseRef);
+      let courseAddedOrUpdated = false;
+
+      if (!courseSnap.exists()) {
         await setDoc(courseRef, {
           ...bundle.course,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
-        for (const mod of bundle.modules) {
-          await setDoc(doc(db, 'courses', bundle.course.id, 'modules', mod.id), {
+        courseAddedOrUpdated = true;
+      }
+
+      for (const mod of bundle.modules) {
+        const modRef = doc(db, 'courses', bundle.course.id, 'modules', mod.id);
+        const modSnap = await getDoc(modRef);
+        if (!modSnap.exists()) {
+          await setDoc(modRef, {
             ...mod,
             updatedAt: serverTimestamp(),
           });
+          courseAddedOrUpdated = true;
         }
-        for (const q of bundle.questions) {
-          await setDoc(doc(db, 'courses', bundle.course.id, 'examQuestions', q.id), q);
+      }
+
+      for (const q of bundle.questions) {
+        const qRef = doc(db, 'courses', bundle.course.id, 'examQuestions', q.id);
+        const qSnap = await getDoc(qRef);
+        if (!qSnap.exists()) {
+          await setDoc(qRef, q);
+          courseAddedOrUpdated = true;
         }
+      }
+
+      if (courseAddedOrUpdated) {
         seeded++;
       }
     }
 
-    const existingOffers = await getDocs(collection(db, 'funnelOffers'));
-    if (existingOffers.empty) {
-      for (const offer of SEED_FUNNEL_OFFERS) {
-        await setDoc(doc(db, 'funnelOffers', offer.id), {
+    for (const offer of SEED_FUNNEL_OFFERS) {
+      const offerRef = doc(db, 'funnelOffers', offer.id);
+      const offerSnap = await getDoc(offerRef);
+      if (!offerSnap.exists()) {
+        await setDoc(offerRef, {
           ...offer,
           updatedAt: serverTimestamp(),
         });
       }
     }
 
-    const existingTestimonials = await getDocs(collection(db, 'testimonials'));
-    if (existingTestimonials.empty) {
-      for (const t of SEED_TESTIMONIALS) {
-        await setDoc(doc(db, 'testimonials', t.id), {
+    for (const t of SEED_TESTIMONIALS) {
+      const tRef = doc(db, 'testimonials', t.id);
+      const tSnap = await getDoc(tRef);
+      if (!tSnap.exists()) {
+        await setDoc(tRef, {
           ...t,
           updatedAt: serverTimestamp(),
         });
@@ -587,6 +639,47 @@ export async function fetchCorporateQuotesAdmin(): Promise<CorporateQuote[]> {
     return snap.docs.map((d) => d.data() as CorporateQuote);
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, 'corporateQuotes');
+  }
+}
+
+export async function submitSafetyDocRequest(req: Omit<SafetyDocRequest, 'createdAt'>) {
+  try {
+    const clean = stripUndefined(req as Record<string, unknown>);
+    await setDoc(doc(db, 'safetyDocRequests', req.id), {
+      ...clean,
+      createdAt: serverTimestamp(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, `safetyDocRequests/${req.id}`);
+  }
+}
+
+export async function fetchUserSafetyDocRequests(userId: string): Promise<SafetyDocRequest[]> {
+  try {
+    const q = query(collection(db, 'safetyDocRequests'), where('userId', '==', userId));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data() as SafetyDocRequest);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, 'safetyDocRequests');
+  }
+}
+
+export async function fetchAllSafetyDocRequestsAdmin(): Promise<SafetyDocRequest[]> {
+  try {
+    const snap = await getDocs(collection(db, 'safetyDocRequests'));
+    return snap.docs.map((d) => d.data() as SafetyDocRequest);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, 'safetyDocRequests');
+  }
+}
+
+export async function updateSafetyDocStatusAdmin(requestId: string, status: SafetyDocStatus) {
+  try {
+    await updateDoc(doc(db, 'safetyDocRequests', requestId), {
+      status,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `safetyDocRequests/${requestId}`);
   }
 }
 
