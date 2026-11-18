@@ -5,6 +5,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { put } from '@vercel/blob';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { getNrCertificateSpec } from '../src/data/certificateCatalog';
 
 dotenv.config();
 
@@ -17,7 +18,20 @@ const ADMIN_EMAIL = 'admin@x.com';
 const ADMIN_PASS = 'admin4321';
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || '4k-treinamentos-session-secret-2026';
 
-let runtimeInfinitePayHandle = process.env.INFINITEPAY_HANDLE || '';
+const DEFAULT_INFINITEPAY_HANDLE = 'ilza-ribeiro';
+const DEFAULT_INFINITEPAY_API_KEY = 'inchk_mYev_fqX0L9JtJ8isWGIvBeguIAzgIzGYgrCDqvT8VQ';
+
+let runtimeInfinitePayHandle = (process.env.INFINITEPAY_HANDLE || DEFAULT_INFINITEPAY_HANDLE).trim().replace(/^@/, '');
+
+function getInfinitePayHandle(handleOverride?: string): string {
+  return (handleOverride || runtimeInfinitePayHandle || process.env.INFINITEPAY_HANDLE || DEFAULT_INFINITEPAY_HANDLE)
+    .trim()
+    .replace(/^@/, '');
+}
+
+function getInfinitePayApiKey(): string {
+  return (process.env.INFINITEPAY_API_KEY || DEFAULT_INFINITEPAY_API_KEY).trim();
+}
 const ORDERS_META_FILE = '/tmp/4k-orders-meta.json';
 const VERIFIED_GRANTS_FILE = '/tmp/4k-verified-grants.json';
 
@@ -165,12 +179,27 @@ async function storeToBlobOrLocal(
 }
 
 function getAppOrigin(req: express.Request): string {
+  const forwardedHost = (req.headers['x-forwarded-host'] as string | undefined)?.split(',')[0]?.trim();
+  const forwardedProto = (req.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0]?.trim();
+  if (forwardedHost) {
+    return `${forwardedProto || req.protocol || 'https'}://${forwardedHost}`;
+  }
+
+  const reqOrigin = typeof req.headers.origin === 'string' ? req.headers.origin.trim() : '';
+  if (reqOrigin && /^https?:\/\//i.test(reqOrigin)) {
+    return reqOrigin.replace(/\/$/, '');
+  }
+
+  const hostHeader = req.get('host');
+  if (hostHeader && !/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(hostHeader)) {
+    return `${forwardedProto || req.protocol || 'https'}://${hostHeader}`;
+  }
+
   if (process.env.APP_URL && !process.env.APP_URL.includes('MY_APP_URL')) {
     return process.env.APP_URL.replace(/\/$/, '');
   }
-  const proto = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'https';
-  const host = req.headers['x-forwarded-host'] || req.get('host') || 'localhost:3000';
-  return `${proto}://${host}`;
+
+  return `${forwardedProto || req.protocol || 'http'}://${hostHeader || 'localhost:3000'}`;
 }
 
 function findLogoBytes(): Buffer | null {
@@ -286,6 +315,7 @@ export function createApiApp(): express.Express {
     try {
       const {
         orderId,
+        order_nsu,
         courseTitle,
         priceCents,
         items,
@@ -295,7 +325,8 @@ export function createApiApp(): express.Express {
         redirectPath,
         orderMeta,
       } = req.body as {
-        orderId: string;
+        orderId?: string;
+        order_nsu?: string;
         courseTitle?: string;
         priceCents?: number;
         items?: { description: string; price: number; quantity: number }[];
@@ -313,14 +344,18 @@ export function createApiApp(): express.Express {
         };
       };
 
+      const resolvedOrderId = (orderId || order_nsu || `pedido-${Date.now()}`).trim();
+
       const normalizedItems =
         Array.isArray(items) && items.length > 0
-          ? items.map((it) => ({
-              quantity: Math.max(1, Math.round(it.quantity || 1)),
-              price: Math.round(it.price),
-              description: String(it.description || 'Curso NR').slice(0, 120),
-            }))
-          : courseTitle && typeof priceCents === 'number'
+          ? items
+              .map((it) => ({
+                quantity: Math.max(1, Math.round(Number(it.quantity) || 1)),
+                price: Math.round(Number(it.price)),
+                description: String(it.description || 'Curso NR').slice(0, 120),
+              }))
+              .filter((it) => Number.isFinite(it.price) && it.price > 0)
+          : courseTitle && typeof priceCents === 'number' && priceCents > 0
             ? [
                 {
                   quantity: 1,
@@ -330,13 +365,13 @@ export function createApiApp(): express.Express {
               ]
             : [];
 
-      if (!orderId || normalizedItems.length === 0) {
-        return res.status(400).json({ error: 'Dados do pedido incompletos.' });
+      if (!resolvedOrderId || normalizedItems.length === 0) {
+        return res.status(400).json({ error: 'Dados do pedido ou itens inválidos para gerar o pagamento.' });
       }
 
       if (orderMeta?.userId && Array.isArray(orderMeta.courseIds) && orderMeta.courseIds.length > 0) {
-        pendingOrderMetaMap.set(orderId, {
-          orderId,
+        pendingOrderMetaMap.set(resolvedOrderId, {
+          orderId: resolvedOrderId,
           userId: orderMeta.userId,
           userName: orderMeta.userName || customerName,
           userEmail: orderMeta.userEmail || customerEmail,
@@ -348,31 +383,29 @@ export function createApiApp(): express.Express {
         writeJsonMap(ORDERS_META_FILE, pendingOrderMetaMap);
       }
 
-      const handle = (handleOverride || runtimeInfinitePayHandle || process.env.INFINITEPAY_HANDLE || '').trim().replace(/^@/, '');
-      if (!handle) {
-        return res.status(422).json({
-          requiresHandleConfig: true,
-          error:
-            'InfiniteTag (handle) não configurada. Acesse o Painel Admin → Configurações Gerais e informe sua InfiniteTag InfinitePay.',
-        });
-      }
+      const handle = getInfinitePayHandle(handleOverride);
+      const apiKey = getInfinitePayApiKey();
 
       const origin = getAppOrigin(req);
       const finalRedirect = redirectPath
         ? `${origin}${redirectPath.startsWith('/') ? '' : '/'}${redirectPath}`
-        : `${origin}/checkout/sucesso?order_nsu=${encodeURIComponent(orderId)}`;
+        : `${origin}/obrigado`;
+
+      const cleanCustomerName = (customerName || '').trim();
+      const cleanCustomerEmail = (customerEmail || '').trim();
+      const hasValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanCustomerEmail);
 
       const payload = {
         handle,
-        items: normalizedItems,
-        order_nsu: orderId,
+        order_nsu: resolvedOrderId,
         redirect_url: finalRedirect,
+        items: normalizedItems,
         webhook_url: `${origin}/api/webhooks/infinitepay`,
-        ...(customerName || customerEmail
+        ...(cleanCustomerName || hasValidEmail
           ? {
               customer: {
-                ...(customerName ? { name: customerName } : {}),
-                ...(customerEmail ? { email: customerEmail } : {}),
+                ...(cleanCustomerName ? { name: cleanCustomerName } : {}),
+                ...(hasValidEmail ? { email: cleanCustomerEmail } : {}),
               },
             }
           : {}),
@@ -380,20 +413,31 @@ export function createApiApp(): express.Express {
 
       const ipRes = await fetch('https://api.checkout.infinitepay.io/links', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Api-Key': apiKey,
+        },
         body: JSON.stringify(payload),
       });
 
-      const data = (await ipRes.json().catch(() => ({}))) as { url?: string; message?: string; error?: string };
+      const data = (await ipRes.json().catch(() => ({}))) as {
+        url?: string;
+        message?: string;
+        error?: string;
+      };
 
       if (!ipRes.ok || !data.url) {
+        console.error('Erro retornado pela InfinitePay:', ipRes.status, data);
         return res.status(502).json({
-          error: data.message || data.error || 'Erro ao gerar link na API InfinitePay.',
+          error:
+            data.message ||
+            data.error ||
+            'Não foi possível gerar o link de pagamento na InfinitePay. Tente novamente em instantes.',
           details: data,
         });
       }
 
-      return res.json({ url: data.url, order_nsu: orderId });
+      return res.json({ url: data.url, order_nsu: resolvedOrderId });
     } catch (error) {
       console.error('Erro InfinitePay create-link:', error);
       return res.status(500).json({ error: 'Falha ao conectar com InfinitePay Checkout Integrado.' });
@@ -533,7 +577,7 @@ export function createApiApp(): express.Express {
         });
       }
 
-      const handle = (handleOverride || runtimeInfinitePayHandle || process.env.INFINITEPAY_HANDLE || '').trim().replace(/^@/, '');
+      const handle = getInfinitePayHandle(handleOverride);
       if (handle && transaction_nsu && slug) {
         const checkRes = await fetch('https://api.checkout.infinitepay.io/invoices/public/checkout/payment_check', {
           method: 'POST',
@@ -580,6 +624,7 @@ export function createApiApp(): express.Express {
       const {
         validationCode,
         studentName,
+        studentCpf,
         courseTitle,
         nrCode,
         workloadHours,
@@ -589,13 +634,15 @@ export function createApiApp(): express.Express {
         instructorName,
         instructorRole,
         instructorRegistry,
-        templateHeader,
-        templateBody,
         companyName,
         cnpj,
+        companyPhone,
+        companyAddress,
+        syllabusItems,
       } = req.body as {
         validationCode: string;
         studentName: string;
+        studentCpf?: string;
         courseTitle: string;
         nrCode: string;
         workloadHours: number;
@@ -609,170 +656,321 @@ export function createApiApp(): express.Express {
         templateBody?: string;
         companyName?: string;
         cnpj?: string;
+        companyPhone?: string;
+        companyAddress?: string;
+        syllabusItems?: string[];
       };
 
       if (!validationCode || !studentName || !courseTitle) {
         return res.status(400).json({ error: 'Dados do certificado incompletos.' });
       }
 
+      // Preserve Portuguese Latin-1 accents (WinAnsi) while stripping emojis/unsupported chars
+      const safeText = (txt: string) =>
+        (txt || '')
+          .replace(/[^\x20-\x7E\xA0-\xFF•–—]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      const parsedHours = Number(workloadHours) || undefined;
+      const spec = getNrCertificateSpec(nrCode || courseTitle, courseTitle, parsedHours);
       const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage([841.89, 595.28]);
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 Portrait matching reference
       const { width, height } = page.getSize();
 
       const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-      const navy = rgb(0.058, 0.09, 0.165);
-      const amber = rgb(0.96, 0.62, 0.043);
-      const slate = rgb(0.28, 0.33, 0.41);
-      const lightBg = rgb(0.973, 0.98, 0.988);
+      const accent = rgb(spec.accentRgb[0], spec.accentRgb[1], spec.accentRgb[2]);
+      const tintBg = rgb(spec.tintRgb[0], spec.tintRgb[1], spec.tintRgb[2]);
+      const darkText = rgb(0.11, 0.14, 0.18);
+      const mutedText = rgb(0.38, 0.43, 0.49);
 
       page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(1, 1, 1) });
-      page.drawRectangle({ x: 24, y: 24, width: width - 48, height: height - 48, borderColor: navy, borderWidth: 3 });
-      page.drawRectangle({ x: 34, y: 34, width: width - 68, height: height - 68, borderColor: amber, borderWidth: 1.5 });
-      page.drawRectangle({ x: 35, y: height - 120, width: width - 70, height: 85, color: navy });
 
-      let headerTextX = 64;
+      const companyUpper = safeText((companyName || '4K TREINAMENTOS').toUpperCase());
+      const companyCnpj = safeText(cnpj || '48.912.340/0001-72');
+      const phoneStr = safeText(companyPhone || '(11) 4002-8922');
+      const addrStr = safeText(companyAddress || 'Av. Paulista, 1439 · Bela Vista, São Paulo - SP');
+      const studentUpper = safeText(studentName.toUpperCase());
+      const cpfClean = safeText(studentCpf || '');
+
+      const drawCentered = (
+        txt: string,
+        y: number,
+        size: number,
+        font = fontRegular,
+        color = darkText
+      ) => {
+        const clean = safeText(txt);
+        const w = font.widthOfTextAtSize(clean, size);
+        page.drawText(clean, {
+          x: Math.max(36, (width - w) / 2),
+          y,
+          size,
+          font,
+          color,
+        });
+      };
+
+      const wrapLines = (txt: string, maxW: number, size: number, font = fontRegular): string[] => {
+        const words = safeText(txt).split(' ').filter(Boolean);
+        const out: string[] = [];
+        let cur = '';
+        for (const w of words) {
+          const cand = cur ? `${cur} ${w}` : w;
+          if (font.widthOfTextAtSize(cand, size) <= maxW) {
+            cur = cand;
+          } else {
+            if (cur) out.push(cur);
+            cur = w;
+          }
+        }
+        if (cur) out.push(cur);
+        return out;
+      };
+
+      // Top Brand Header (4K TREINAMENTOS + official emblem)
+      let cursorY = height - 48;
       const logoBytes = findLogoBytes();
       if (logoBytes) {
         try {
           const logoImage = await pdfDoc.embedPng(logoBytes);
-          const logoH = 54;
+          const logoH = 26;
           const logoW = (logoImage.width / logoImage.height) * logoH;
-          page.drawImage(logoImage, { x: 56, y: height - 104, width: logoW, height: logoH });
-          headerTextX = 56 + logoW + 14;
+          const compW = fontBold.widthOfTextAtSize(companyUpper, 15);
+          const totalW = logoW + 10 + compW;
+          const startX = (width - totalW) / 2;
+          page.drawImage(logoImage, {
+            x: startX,
+            y: cursorY - 7,
+            width: logoW,
+            height: logoH,
+          });
+          page.drawText(companyUpper, {
+            x: startX + logoW + 10,
+            y: cursorY,
+            size: 15,
+            font: fontBold,
+            color: accent,
+          });
         } catch {
-          // Fallback silently
+          drawCentered(companyUpper, cursorY, 15, fontBold, accent);
         }
+      } else {
+        drawCentered(companyUpper, cursorY, 15, fontBold, accent);
       }
 
-      page.drawText((companyName || '4K TREINAMENTOS').toUpperCase(), {
-        x: headerTextX,
-        y: height - 74,
-        size: 18,
-        font: fontBold,
-        color: amber,
+      // Framed Tinted Certificate Banner Box (exact reference style)
+      const boxMargin = 54;
+      const boxW = width - boxMargin * 2;
+      const boxH = 82;
+      const boxY = height - 166;
+      page.drawRectangle({
+        x: boxMargin,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        color: tintBg,
+        borderColor: accent,
+        borderWidth: 2.2,
       });
-      page.drawText('SEGURANCA DO TRABALHO · NORMAS REGULAMENTADORAS', {
-        x: headerTextX,
-        y: height - 96,
+
+      drawCentered('CERTIFICADO', boxY + 46, 25, fontBold, accent);
+      const bannerSub = spec.bannerSubtitle || `${spec.nrLabel} | ${spec.officialTitle}`;
+      const subFontSize =
+        fontBold.widthOfTextAtSize(safeText(bannerSub), 10.5) > boxW - 24
+          ? fontBold.widthOfTextAtSize(safeText(bannerSub), 8.5) > boxW - 24
+            ? 7.8
+            : 8.5
+          : 10.5;
+      drawCentered(bannerSub, boxY + 20, subFontSize, fontBold, darkText);
+
+      // Student Identification Block
+      cursorY = boxY - 34;
+      const nameSize = fontBold.widthOfTextAtSize(studentUpper, 17) > width - 108 ? 14 : 17;
+      drawCentered(studentUpper, cursorY, nameSize, fontBold, accent);
+      cursorY -= 18;
+
+      if (cpfClean) {
+        drawCentered(`CPF: ${cpfClean}`, cursorY, 10, fontRegular, darkText);
+        cursorY -= 24;
+      } else {
+        cursorY -= 8;
+      }
+
+      // Formal Certification Paragraph
+      const bodyMargin = 76;
+      const bodyWidth = width - bodyMargin * 2;
+      const trainingDesc =
+        spec.nrKey === 'nr-33'
+          ? `o treinamento de ${spec.trainingTypeLabel || 'Capacitação'} da ${spec.nrLabel} - ${spec.officialTitle}, ${spec.audienceClause || 'para trabalhadores autorizados e vigia em espaço confinado'}`
+          : spec.nrKey === 'nr-35' && spec.trainingTypeLabel
+            ? `o treinamento de ${spec.trainingTypeLabel} da ${spec.nrLabel} - ${spec.officialTitle}`
+            : `o treinamento de ${spec.nrLabel} - ${spec.officialTitle}`;
+      const certSentence = `Certificamos que ${studentUpper} concluiu com aproveitamento (${score}%) ${trainingDesc}, promovido por ${companyUpper}, CNPJ ${companyCnpj}, com carga horária de ${workloadHours} horas e validade normativa de ${validityMonths} meses.`;
+      const certLines = wrapLines(certSentence, bodyWidth, 10, fontRegular);
+      for (const line of certLines) {
+        page.drawText(line, {
+          x: bodyMargin,
+          y: cursorY,
+          size: 10,
+          font: fontRegular,
+          color: darkText,
+        });
+        cursorY -= 15;
+      }
+
+      // Middle Section: CONTEÚDO PROGRAMÁTICO - NR-XX
+      cursorY -= 20;
+      drawCentered(`CONTEÚDO PROGRAMÁTICO – ${spec.nrLabel}`, cursorY, 9.5, fontBold, accent);
+      cursorY -= 18;
+      const progTitleSize = fontBold.widthOfTextAtSize(safeText(spec.officialTitle), 13) > width - 80 ? 11 : 13;
+      drawCentered(spec.officialTitle, cursorY, progTitleSize, fontBold, accent);
+      cursorY -= 22;
+
+      const modalityText = spec.modalitySummary || 'Treinamento teórico EAD conforme NR-01';
+      const metaLine = `Modalidade informada: ${modalityText} | Avaliação formal: ${score}% | Código de validação: ${validationCode}`;
+      const metaLines = wrapLines(metaLine, width - boxMargin * 2, 9.5, fontRegular);
+      for (const ml of metaLines) {
+        page.drawText(ml, {
+          x: boxMargin,
+          y: cursorY,
+          size: 9.5,
+          font: fontRegular,
+          color: darkText,
+        });
+        cursorY -= 14;
+      }
+
+      cursorY -= 10;
+      page.drawText('Conteúdo ministrado:', {
+        x: boxMargin,
+        y: cursorY,
+        size: 10,
+        font: fontBold,
+        color: darkText,
+      });
+      cursorY -= 16;
+
+      // NR-Specific Official Bulleted Syllabus
+      const items =
+        Array.isArray(syllabusItems) && syllabusItems.length > 0 ? syllabusItems : spec.syllabus;
+      const bulletIndent = boxMargin + 10;
+      const bulletMaxW = width - bulletIndent - boxMargin;
+
+      for (const item of items) {
+        const wrapped = wrapLines(item, bulletMaxW - 12, 9.5, fontRegular);
+        if (cursorY - wrapped.length * 13 < 165) break;
+        wrapped.forEach((line, idx) => {
+          if (idx === 0) {
+            page.drawText('•', {
+              x: bulletIndent,
+              y: cursorY,
+              size: 10,
+              font: fontBold,
+              color: darkText,
+            });
+          }
+          page.drawText(line, {
+            x: bulletIndent + 12,
+            y: cursorY,
+            size: 9.5,
+            font: fontRegular,
+            color: darkText,
+          });
+          cursorY -= 13.5;
+        });
+      }
+
+      // Centered Long-Form Date
+      const dateFormatted =
+        issuedDateStr ||
+        new Date().toLocaleDateString('pt-BR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+      drawCentered(`São Paulo/SP, ${dateFormatted}`, 142, 9.5, fontRegular, darkText);
+
+      // Two Side-by-Side Signature Blocks (Instructor + Student Signature Space)
+      const sigLineY = 92;
+      const leftStart = 96;
+      const leftEnd = 276;
+      const rightStart = 319;
+      const rightEnd = 499;
+
+      // Left Signature: Technical Responsible
+      page.drawLine({
+        start: { x: leftStart, y: sigLineY },
+        end: { x: leftEnd, y: sigLineY },
+        thickness: 0.9,
+        color: darkText,
+      });
+      const cleanInstr = safeText(instructorName || 'Eng. Carlos Eduardo Mendes');
+      const cleanReg = safeText(instructorRegistry || 'CREA-SP 5069821470');
+      const instrCenter = (leftStart + leftEnd) / 2;
+      const instrW = fontRegular.widthOfTextAtSize(cleanInstr, 9);
+      page.drawText(cleanInstr, {
+        x: instrCenter - instrW / 2,
+        y: sigLineY - 12,
         size: 9,
         font: fontRegular,
-        color: rgb(0.85, 0.88, 0.92),
+        color: darkText,
+      });
+      const roleSub = safeText(`Responsável técnico – ${cleanReg}`);
+      const roleSubSize = fontRegular.widthOfTextAtSize(roleSub, 8.5) > leftEnd - leftStart + 20 ? 7.5 : 8.5;
+      const roleW = fontRegular.widthOfTextAtSize(roleSub, roleSubSize);
+      page.drawText(roleSub, {
+        x: instrCenter - roleW / 2,
+        y: sigLineY - 24,
+        size: roleSubSize,
+        font: fontRegular,
+        color: darkText,
       });
 
-      const codeText = `CODIGO: ${validationCode}`;
-      page.drawText(codeText, {
-        x: width - 64 - fontBold.widthOfTextAtSize(codeText, 10),
-        y: height - 82,
-        size: 10,
-        font: fontBold,
-        color: rgb(1, 1, 1),
+      // Right Signature: Blank space for Student Signature + Student Name
+      page.drawLine({
+        start: { x: rightStart, y: sigLineY },
+        end: { x: rightEnd, y: sigLineY },
+        thickness: 0.9,
+        color: darkText,
       });
-
-      const headerLabel = (templateHeader || 'CERTIFICADO DE CONCLUSAO E APROVACAO').toUpperCase();
-      const headerWidth = fontBold.widthOfTextAtSize(headerLabel, 18);
-      page.drawText(headerLabel, {
-        x: (width - headerWidth) / 2,
-        y: height - 168,
-        size: 18,
-        font: fontBold,
-        color: navy,
+      const studentCenter = (rightStart + rightEnd) / 2;
+      const studentSigSize = fontRegular.widthOfTextAtSize(studentUpper, 9) > rightEnd - rightStart + 20 ? 7.8 : 9;
+      const studentSigW = fontRegular.widthOfTextAtSize(studentUpper, studentSigSize);
+      page.drawText(studentUpper, {
+        x: studentCenter - studentSigW / 2,
+        y: sigLineY - 12,
+        size: studentSigSize,
+        font: fontRegular,
+        color: darkText,
       });
-
-      const cleanStudent = studentName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const studentWidth = fontBold.widthOfTextAtSize(cleanStudent, 28);
-      page.drawText(cleanStudent, {
-        x: (width - studentWidth) / 2,
-        y: height - 222,
-        size: 28,
-        font: fontBold,
-        color: navy,
-      });
-
-      page.drawLine({ start: { x: 160, y: height - 234 }, end: { x: width - 160, y: height - 234 }, thickness: 1.2, color: amber });
-
-      const cleanCourse = `${nrCode} - ${courseTitle}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const courseFontSize = cleanCourse.length > 52 ? 14 : 17;
-      const courseWidth = fontBold.widthOfTextAtSize(cleanCourse, courseFontSize);
-      page.drawText(cleanCourse, {
-        x: (width - courseWidth) / 2,
-        y: height - 270,
-        size: courseFontSize,
-        font: fontBold,
-        color: navy,
-      });
-
-      const defaultBody = `Concluiu com aproveitamento de ${score}% na avaliacao formal o curso de capacitacao teorica em ${nrCode}, com carga horaria de ${workloadHours} horas e validade normativa de ${validityMonths} meses, em conformidade com as diretrizes do Ministerio do Trabalho e Emprego.`;
-      const bodyRaw = (templateBody && templateBody.length > 20 ? `${defaultBody}` : defaultBody)
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-
-      const words = bodyRaw.split(' ');
-      const lines: string[] = [];
-      let current = '';
-      for (const word of words) {
-        const next = current ? `${current} ${word}` : word;
-        if (fontRegular.widthOfTextAtSize(next, 11.5) > width - 160) {
-          lines.push(current);
-          current = word;
-        } else {
-          current = next;
-        }
-      }
-      if (current) lines.push(current);
-
-      let cursorY = height - 308;
-      for (const line of lines.slice(0, 4)) {
-        const lw = fontRegular.widthOfTextAtSize(line, 11.5);
-        page.drawText(line, {
-          x: (width - lw) / 2,
-          y: cursorY,
-          size: 11.5,
-          font: fontRegular,
-          color: slate,
-        });
-        cursorY -= 18;
-      }
-
-      page.drawRectangle({ x: 80, y: 158, width: width - 160, height: 48, color: lightBg, borderColor: rgb(0.88, 0.9, 0.94), borderWidth: 1 });
-      const dateStr = issuedDateStr || new Date().toLocaleDateString('pt-BR');
-      const metaItems = [
-        { label: 'CARGA HORARIA', value: `${workloadHours} horas` },
-        { label: 'APROVEITAMENTO', value: `${score}%` },
-        { label: 'DATA DE EMISSAO', value: dateStr },
-        { label: 'VALIDADE', value: `${validityMonths} meses` },
-      ];
-      const colW = (width - 160) / 4;
-      metaItems.forEach((item, idx) => {
-        const cx = 96 + idx * colW;
-        page.drawText(item.label, { x: cx, y: 188, size: 7.5, font: fontBold, color: slate });
-        page.drawText(item.value, { x: cx, y: 170, size: 11, font: fontBold, color: navy });
-      });
-
-      const sigY = 92;
-      page.drawLine({ start: { x: 96, y: sigY + 22 }, end: { x: 340, y: sigY + 22 }, thickness: 1, color: navy });
-      const cleanInstr = (instructorName || 'Eng. Carlos Eduardo Mendes').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const cleanRole = (instructorRole || 'Engenheiro de Seguranca do Trabalho').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const cleanReg = (instructorRegistry || 'CREA-SP 5069821470').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      page.drawText(cleanInstr, { x: 96, y: sigY + 8, size: 10, font: fontBold, color: navy });
-      page.drawText(`${cleanRole} · ${cleanReg}`, { x: 96, y: sigY - 6, size: 8.5, font: fontRegular, color: slate });
-
-      page.drawLine({ start: { x: width - 340, y: sigY + 22 }, end: { x: width - 96, y: sigY + 22 }, thickness: 1, color: navy });
-      page.drawText((companyName || '4k Treinamentos LTDA').normalize('NFD').replace(/[\u0300-\u036f]/g, ''), {
-        x: width - 340,
-        y: sigY + 8,
-        size: 10,
-        font: fontBold,
-        color: navy,
-      });
-      page.drawText(`CNPJ ${cnpj || '48.912.340/0001-72'} · Validacao em /validar`, {
-        x: width - 340,
-        y: sigY - 6,
+      const studentRoleLabel = 'Aluno(a) certificado(a) – Assinatura';
+      const studentRoleW = fontRegular.widthOfTextAtSize(studentRoleLabel, 8.5);
+      page.drawText(studentRoleLabel, {
+        x: studentCenter - studentRoleW / 2,
+        y: sigLineY - 24,
         size: 8.5,
         font: fontRegular,
-        color: slate,
+        color: darkText,
       });
+
+      // Institutional Footer (4K TREINAMENTOS ONLY)
+      drawCentered(
+        `${companyUpper} | CNPJ ${companyCnpj} | ${phoneStr}`,
+        38,
+        7.5,
+        fontRegular,
+        mutedText
+      );
+      drawCentered(
+        `${addrStr} | Validação em /validar · Código: ${validationCode}`,
+        26,
+        7.5,
+        fontRegular,
+        mutedText
+      );
 
       const pdfBytes = await pdfDoc.save();
       const origin = getAppOrigin(req);
