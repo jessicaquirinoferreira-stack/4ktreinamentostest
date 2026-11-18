@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { put } from '@vercel/blob';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { getNrCertificateSpec } from '../src/data/certificateCatalog';
 
@@ -231,11 +232,55 @@ export function createApiApp(): express.Express {
   });
 
   app.get('/api/blob/status', (_req, res) => {
+    const tokenConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+    const isVercel = Boolean(process.env.VERCEL);
+    const handle = getInfinitePayHandle();
     res.json({
-      vercelBlobConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
-      infinitePayHandleConfigured: Boolean(runtimeInfinitePayHandle || process.env.INFINITEPAY_HANDLE),
-      infinitePayHandlePreview: runtimeInfinitePayHandle || process.env.INFINITEPAY_HANDLE || null,
+      vercelBlobConfigured: tokenConfigured,
+      isVercelRuntime: isVercel,
+      storageMode: tokenConfigured ? 'vercel-blob' : isVercel ? 'missing-token' : 'local-preview',
+      infinitePayHandleConfigured: Boolean(handle),
+      infinitePayHandlePreview: handle || null,
     });
+  });
+
+  app.post('/api/blob/handle-upload', async (req, res) => {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
+      return res.status(400).json({ error: 'BLOB_READ_WRITE_TOKEN não configurado.' });
+    }
+    try {
+      const body = req.body as HandleUploadBody;
+      const jsonResponse = await handleUpload({
+        body,
+        request: req as any,
+        token,
+        onBeforeGenerateToken: async () => ({
+          allowedContentTypes: [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/webp',
+            'image/avif',
+            'image/gif',
+            'application/pdf',
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+          ],
+          addRandomSuffix: true,
+        }),
+        onUploadCompleted: async () => {
+          // URL saved cleanly to Firestore by caller
+        },
+      });
+      return res.status(200).json(jsonResponse);
+    } catch (error) {
+      console.error('Erro no handle-upload Vercel Blob:', error);
+      return res.status(400).json({
+        error: error instanceof Error ? error.message : 'Falha ao autorizar upload no Vercel Blob.',
+      });
+    }
   });
 
   app.post('/api/blob/upload', async (req, res) => {
@@ -278,7 +323,8 @@ export function createApiApp(): express.Express {
     const cleanPass = password?.trim();
     if (cleanEmail === ADMIN_EMAIL && cleanPass === ADMIN_PASS) {
       const token = signAdminCookie(ADMIN_EMAIL);
-      const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production';
+      const isLocalhost = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(req.get('host') || '');
+      const isHttps = !isLocalhost && (req.secure || req.headers['x-forwarded-proto'] === 'https' || Boolean(process.env.VERCEL));
       res.cookie('4k_admin_session', token, {
         httpOnly: true,
         sameSite: 'lax',
