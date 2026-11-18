@@ -196,5 +196,8 @@ export async function startDirectCourseCheckout(
     await attachCheckoutUrlToOrder(orderId, url).catch(() => {});
   }
 
-  window.location.href = url;
+  const newWin = window.open(url, '_blank');
+  if (!newWin) {
+    window.location.href = url;
+  }
 }

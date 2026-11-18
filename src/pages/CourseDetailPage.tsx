@@ -183,6 +183,15 @@ export function CourseDetailPage() {
     }
   }
 
+  function scrollToCheckout() {
+    const el = document.getElementById('curso-checkout-form');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = el.querySelector('input');
+      if (input) input.focus();
+    }
+  }
+
   async function handlePayAndCheckout(e?: React.FormEvent) {
     e?.preventDefault?.();
     if (!course || startingCheckout) return;
@@ -256,7 +265,13 @@ export function CourseDetailPage() {
         await attachCheckoutUrlToOrder(orderId, url).catch(() => {});
       }
 
-      window.location.href = url;
+      const newWin = window.open(url, '_blank');
+      if (!newWin) {
+        window.location.href = url;
+      } else {
+        toast.success('Checkout da InfinitePay aberto em uma nova aba!');
+        setStartingCheckout(false);
+      }
     } catch (err) {
       toast.error(
         err instanceof Error
@@ -456,7 +471,7 @@ export function CourseDetailPage() {
                   </p>
                 </div>
 
-                <form onSubmit={handlePayAndCheckout} className="space-y-4">
+                <form onSubmit={handlePayAndCheckout} id="curso-checkout-form" className="space-y-4">
                   {/* Student account / login info */}
                   <div className="bg-[#F7F9FC] border border-slate-200 rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
@@ -745,10 +760,10 @@ export function CourseDetailPage() {
               <button
                 type="button"
                 disabled={startingCheckout}
-                onClick={() => handlePayAndCheckout()}
+                onClick={scrollToCheckout}
                 className="w-full min-h-[44px] py-3 px-4 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                {startingCheckout ? 'Abrindo InfinitePay...' : 'Garantir acesso + bônus agora'}
+                Garantir acesso + bônus agora
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -921,10 +936,10 @@ export function CourseDetailPage() {
           <button
             type="button"
             disabled={startingCheckout}
-            onClick={() => handlePayAndCheckout()}
+            onClick={scrollToCheckout}
             className="inline-flex items-center justify-center min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] font-extrabold text-sm rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            {startingCheckout ? 'Abrindo InfinitePay...' : 'Matricular sem risco'}
+            Matricular sem risco
           </button>
         </section>
 
@@ -1024,10 +1039,10 @@ export function CourseDetailPage() {
               <button
                 type="button"
                 disabled={startingCheckout}
-                onClick={() => handlePayAndCheckout()}
+                onClick={scrollToCheckout}
                 className="inline-flex items-center justify-center min-h-[42px] px-4 sm:px-5 py-2 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] text-xs sm:text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
               >
-                {startingCheckout ? 'Redirecionando...' : 'Matricular agora'}
+                Matricular agora
               </button>
             </div>
           </div>
