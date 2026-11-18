@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { FloatingSupportWidgets } from './components/FloatingSupportWidgets';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
@@ -44,6 +45,7 @@ function AppShell() {
             element={<HomePage courses={courses} settings={settings} loadingCourses={loadingCourses} />}
           />
           <Route path="/cursos/:slug" element={<CourseDetailPage />} />
+          <Route path="/obrigado" element={<CheckoutSuccessPage />} />
           <Route path="/checkout/sucesso" element={<CheckoutSuccessPage />} />
           <Route path="/checkout/falha" element={<CheckoutFailurePage />} />
           <Route path="/checkout/combo/:offerId" element={<CheckoutPage mode="combo" />} />
@@ -55,6 +57,7 @@ function AppShell() {
         </Routes>
       </div>
       {!isAdminRoute && <Footer settings={settings} />}
+      {!isAdminRoute && <FloatingSupportWidgets />}
     </div>
   );
 }

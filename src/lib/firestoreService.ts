@@ -11,6 +11,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
+import { upload as uploadDirectToVercelBlob } from '@vercel/blob/client';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import {
   DEFAULT_PUBLIC_SETTINGS,
@@ -21,7 +22,9 @@ import {
   NR18_COVER_URL,
   NR20_COVER_URL,
   NR23_COVER_URL,
+  NR33_40H_COVER_URL,
   NR33_COVER_URL,
+  NR35_40H_COVER_URL,
   NR35_COVER_URL,
   SEED_COURSES,
   SEED_FUNNEL_OFFERS,
@@ -69,19 +72,91 @@ const LEGACY_IMAGE_UPGRADES: Record<string, string> = {
   '/images/nr06_4k_branded.jpg': NR06_COVER_URL,
 };
 
+const LEGACY_HASHED_COVER_PATTERN =
+  /(_4k_branded|course_nr(?:06|12|18|33|35)|\/images\/nr(?:06|10|11|12|18|20|23|33|35)_4k_branded)/i;
+
+const VERCEL_BLOB_HOST_PATTERN = /(^|\.)blob\.vercel-storage\.com$/i;
+
+export function isManagedAssetUrl(rawUrl?: string): boolean {
+  if (!rawUrl || !rawUrl.trim()) return true;
+  const trimmed = rawUrl.trim();
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return false;
+  }
+  if (trimmed.startsWith('/')) {
+    return (
+      trimmed.startsWith('/assets/') ||
+      trimmed.startsWith('/images/') ||
+      trimmed.startsWith('/api/blob/local/')
+    );
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (VERCEL_BLOB_HOST_PATTERN.test(parsed.hostname)) {
+      return parsed.protocol === 'https:';
+    }
+    if (
+      typeof window !== 'undefined' &&
+      parsed.origin === window.location.origin &&
+      (parsed.pathname.startsWith('/api/blob/local/') ||
+        parsed.pathname.startsWith('/assets/') ||
+        parsed.pathname.startsWith('/images/'))
+    ) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function assertNoExternalAssetUrl(rawUrl?: string, fieldLabel = 'arquivo'): string | undefined {
+  if (!rawUrl || !rawUrl.trim()) return undefined;
+  const trimmed = rawUrl.trim();
+  if (!isManagedAssetUrl(trimmed)) {
+    throw new Error(
+      `URL externa não permitida para ${fieldLabel}. Envie o arquivo diretamente pelo Vercel Blob Storage.`
+    );
+  }
+  return trimmed;
+}
+
+function resolveCourseImage(rawUrl: string | undefined, seedFallback: string | undefined): string | undefined {
+  if (!rawUrl) return seedFallback;
+  if (LEGACY_IMAGE_UPGRADES[rawUrl] || LEGACY_HASHED_COVER_PATTERN.test(rawUrl)) {
+    return seedFallback || LEGACY_IMAGE_UPGRADES[rawUrl] || rawUrl;
+  }
+  if (!isManagedAssetUrl(rawUrl)) {
+    return seedFallback;
+  }
+  return rawUrl;
+}
+
 function enrichCourse(course: Course): Course {
   const seedMatch = SEED_COURSES.find((b) => b.course.id === course.id || b.course.slug === course.slug)?.course;
-  const resolvedCover =
-    (course.coverImageUrl && LEGACY_IMAGE_UPGRADES[course.coverImageUrl]) ||
-    course.coverImageUrl ||
-    seedMatch?.coverImageUrl;
-  const resolvedBanner =
-    (course.bannerImageUrl && LEGACY_IMAGE_UPGRADES[course.bannerImageUrl]) ||
-    course.bannerImageUrl ||
-    resolvedCover ||
-    seedMatch?.bannerImageUrl;
+  const resolvedCover = resolveCourseImage(course.coverImageUrl, seedMatch?.coverImageUrl);
+  const resolvedBanner = resolveCourseImage(
+    course.bannerImageUrl,
+    seedMatch?.bannerImageUrl || resolvedCover,
+  );
+
+  // Keep references used for bundle consistency checks
+  void NR33_40H_COVER_URL;
+  void NR35_40H_COVER_URL;
+
+  const isLegacyNr33 =
+    course.id === 'nr-33' &&
+    course.nrCode === 'NR-33' &&
+    course.title === 'Segurança e Saúde em Espaços Confinados';
+  const isLegacyNr35 =
+    course.id === 'nr-35' &&
+    course.nrCode === 'NR-35' &&
+    course.title === 'Trabalho em Altura';
+
   return {
     ...course,
+    nrCode: (isLegacyNr33 || isLegacyNr35) && seedMatch ? seedMatch.nrCode : course.nrCode,
+    title: (isLegacyNr33 || isLegacyNr35) && seedMatch ? seedMatch.title : course.title,
     coverImageUrl: resolvedCover,
     bannerImageUrl: resolvedBanner,
     salesHeadline: course.salesHeadline || seedMatch?.salesHeadline,
@@ -361,6 +436,13 @@ export async function seedInitialDatabaseIfEmpty(): Promise<number> {
 
 export async function saveCourseAdmin(course: Partial<Course> & { id: string }, isNew: boolean) {
   try {
+    if (course.coverImageUrl) {
+      assertNoExternalAssetUrl(course.coverImageUrl, 'capa do curso');
+    }
+    if (course.bannerImageUrl) {
+      assertNoExternalAssetUrl(course.bannerImageUrl, 'banner do curso');
+    }
+
     const ref = doc(db, 'courses', course.id);
     const snap = await getDoc(ref);
     const shouldCreate = isNew || !snap.exists();
@@ -395,6 +477,12 @@ export async function deleteCourseAdmin(courseId: string) {
 
 export async function saveCourseModuleAdmin(mod: Omit<CourseModule, 'updatedAt'>) {
   try {
+    for (const lesson of mod.lessons || []) {
+      if (lesson.videoUrl) assertNoExternalAssetUrl(lesson.videoUrl, `vídeo da aula "${lesson.title}"`);
+      if (lesson.pdfUrl) assertNoExternalAssetUrl(lesson.pdfUrl, `PDF da aula "${lesson.title}"`);
+      if (lesson.imageUrl) assertNoExternalAssetUrl(lesson.imageUrl, `imagem da aula "${lesson.title}"`);
+      if (lesson.attachmentUrl) assertNoExternalAssetUrl(lesson.attachmentUrl, `anexo da aula "${lesson.title}"`);
+    }
     const cleanMod = stripUndefined(mod as Record<string, unknown>);
     await setDoc(doc(db, 'courses', mod.courseId, 'modules', mod.id), {
       ...cleanMod,
@@ -644,6 +732,12 @@ export async function fetchCorporateQuotesAdmin(): Promise<CorporateQuote[]> {
 
 export async function submitSafetyDocRequest(req: Omit<SafetyDocRequest, 'createdAt'>) {
   try {
+    if (req.cnpjCardUrl) {
+      assertNoExternalAssetUrl(req.cnpjCardUrl, 'Cartão CNPJ');
+    }
+    if (req.aprPdfUrl) {
+      assertNoExternalAssetUrl(req.aprPdfUrl, 'PDF da APR');
+    }
     const clean = stripUndefined(req as Record<string, unknown>);
     await setDoc(doc(db, 'safetyDocRequests', req.id), {
       ...clean,
@@ -683,7 +777,110 @@ export async function updateSafetyDocStatusAdmin(requestId: string, status: Safe
   }
 }
 
-export async function uploadFileToVercelBlob(file: File, folder = 'uploads'): Promise<{ url: string; storageProvider: string }> {
+const ALLOWED_CLIENT_FOLDERS = new Set([
+  'courses',
+  'lessons',
+  'safety-docs',
+  'certificates',
+  'attachments',
+  'uploads',
+]);
+
+const ALLOWED_CLIENT_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+  'image/gif',
+  'application/pdf',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+]);
+
+export interface BlobUploadResult {
+  url: string;
+  pathname?: string;
+  storageProvider: 'vercel-blob' | 'local-preview';
+}
+
+export async function uploadFileToVercelBlob(
+  file: File,
+  folder = 'uploads',
+  onProgress?: (percentage: number) => void
+): Promise<BlobUploadResult> {
+  const normalizedFolder = ALLOWED_CLIENT_FOLDERS.has(folder) ? folder : 'uploads';
+  const normalizedType = (file.type || '').toLowerCase().trim();
+  if (normalizedType && !ALLOWED_CLIENT_MIME_TYPES.has(normalizedType)) {
+    throw new Error(
+      'Formato não suportado. Envie imagens (JPG, PNG, WEBP, GIF), PDF ou vídeos (MP4, WEBM, MOV).'
+    );
+  }
+  if (file.size > 100 * 1024 * 1024) {
+    throw new Error('O arquivo excede o limite máximo de 100 MB no Vercel Blob.');
+  }
+
+  let statusInfo: { vercelBlobConfigured?: boolean; isVercelRuntime?: boolean } = {};
+  try {
+    const statusRes = await fetch('/api/blob/status');
+    if (statusRes.ok) {
+      statusInfo = (await statusRes.json()) as {
+        vercelBlobConfigured?: boolean;
+        isVercelRuntime?: boolean;
+      };
+    }
+  } catch {
+    // fallback handled below
+  }
+
+  if (statusInfo.isVercelRuntime && !statusInfo.vercelBlobConfigured) {
+    throw new Error(
+      'Storage Vercel Blob não configurado (BLOB_READ_WRITE_TOKEN ausente na Vercel). Ative o Vercel Blob Storage nas configurações do projeto.'
+    );
+  }
+
+  const safeFilename = (file.name || `arquivo_${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+  const targetPathname = `${normalizedFolder}/${safeFilename}`;
+
+  // Upload direto do navegador para o Vercel Blob Storage (suporta arquivos grandes sem limite de payload serverless)
+  if (statusInfo.vercelBlobConfigured) {
+    try {
+      const blob = await uploadDirectToVercelBlob(targetPathname, file, {
+        access: 'public',
+        handleUploadUrl: '/api/blob/handle-upload',
+        contentType: normalizedType || undefined,
+        multipart: file.size > 4 * 1024 * 1024,
+        onUploadProgress: (evt) => {
+          if (onProgress && typeof evt.percentage === 'number') {
+            onProgress(Math.round(evt.percentage));
+          }
+        },
+      });
+      onProgress?.(100);
+      return {
+        url: blob.url,
+        pathname: blob.pathname,
+        storageProvider: 'vercel-blob',
+      };
+    } catch (directErr) {
+      // Fallback para upload via API caso o arquivo seja pequeno (<= 3 MB) e haja restrição de rede no cliente
+      if (file.size > 3 * 1024 * 1024) {
+        throw new Error(
+          directErr instanceof Error
+            ? `Falha no upload direto para o Vercel Blob: ${directErr.message}`
+            : 'Falha no upload direto para o Vercel Blob.'
+        );
+      }
+    }
+  }
+
+  if (file.size > 15 * 1024 * 1024) {
+    throw new Error(
+      'Arquivo maior que 15 MB requer BLOB_READ_WRITE_TOKEN configurado para upload direto no Vercel Blob.'
+    );
+  }
+
   const base64Data = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
@@ -695,16 +892,17 @@ export async function uploadFileToVercelBlob(file: File, folder = 'uploads'): Pr
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      filename: file.name,
-      contentType: file.type || 'application/octet-stream',
+      filename: safeFilename,
+      contentType: normalizedType || 'application/octet-stream',
       base64Data,
-      folder,
+      folder: normalizedFolder,
     }),
   });
 
-  const data = await res.json();
+  const data = (await res.json().catch(() => ({}))) as BlobUploadResult & { error?: string };
   if (!res.ok) {
-    throw new Error(data.error || 'Erro ao enviar arquivo para Vercel Blob.');
+    throw new Error(data.error || 'Erro ao enviar arquivo para o Vercel Blob.');
   }
+  onProgress?.(100);
   return data;
 }

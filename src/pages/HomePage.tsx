@@ -6,11 +6,14 @@ import {
   ArrowUpRight,
   Award,
   CheckCircle2,
+  ClipboardCheck,
   FileCheck2,
   Layers,
+  Loader2,
   Search,
   ShieldCheck,
   Star,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CertificateSpecimen } from '../components/CertificateSpecimen';
@@ -25,6 +28,7 @@ import {
   INSTRUCTOR_PORTRAIT_URL,
 } from '../data/seedCourses';
 import { fetchFunnelOffers, fetchTestimonials, submitCorporateQuote } from '../lib/firestoreService';
+import { startDirectCourseCheckout } from '../lib/infinitepayClient';
 import type { Course, FunnelOffer, PublicSettings, Testimonial } from '../types';
 
 interface HomePageProps {
@@ -128,6 +132,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [combos, setCombos] = useState<FunnelOffer[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [spotlightCheckoutLoading, setSpotlightCheckoutLoading] = useState(false);
 
   useEffect(() => {
     fetchFunnelOffers(true).then((offers) => {
@@ -177,7 +182,12 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
   }, [courses, filter, searchTerm]);
 
   const featuredSpotlight = useMemo(() => {
-    return courses.find((c) => c.nrCode.includes('35')) || courses[0] || null;
+    return (
+      courses.find((c) => c.id === 'nr-35-40h') ||
+      courses.find((c) => c.nrCode.includes('35')) ||
+      courses[0] ||
+      null
+    );
   }, [courses]);
 
   function toggleNr(nrCode: string) {
@@ -223,43 +233,43 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
   return (
     <main className="bg-[#F7F9FC] text-[#0A2540]">
       {/* 1. HERO CORPORATIVO DE ALTA CONVERSÃO */}
-      <section className="bg-[#0A2540] text-white border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 lg:pt-16 lg:pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
+      <section className="bg-navy-grid text-white border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 lg:pt-14 lg:pb-14">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
             {/* Left Copy & Quick NR Access */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-7 flex flex-col justify-between gap-8"
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-7 flex flex-col justify-between gap-7"
             >
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <p className="text-xs font-mono font-semibold text-[#F5C518] tracking-wider uppercase">
                   Engenharia & Segurança do Trabalho · Portaria MTP 672/2021
                 </p>
 
                 <h1
-                  className="font-display font-extrabold tracking-tight text-white leading-[1.08]"
+                  className="font-display font-extrabold tracking-tight text-white leading-[1.06]"
                   style={{ fontSize: 'clamp(2.2rem, 4.1vw, 3.65rem)', textWrap: 'balance' }}
                 >
                   {settings.heroTitle}
                 </h1>
 
-                <p className="text-base sm:text-lg text-slate-200 leading-relaxed max-w-2xl">
+                <p className="text-base sm:text-lg text-slate-200/95 leading-relaxed max-w-2xl">
                   {settings.heroSubtitle}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3.5 pt-2">
                   <a
                     href="#cursos"
-                    className="inline-flex items-center justify-center gap-2 min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] active:scale-[0.98] text-[#0A2540] font-extrabold text-sm rounded-lg transition-all whitespace-nowrap shrink-0 shadow-sm"
+                    className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 active:scale-[0.98] text-[#0A2540] font-extrabold text-sm rounded-lg transition-all duration-200 whitespace-nowrap shrink-0 shadow-[0_12px_28px_-8px_rgba(245,197,24,0.55)]"
                   >
                     Ver Cursos
                     <ArrowRight className="w-4 h-4" />
                   </a>
                   <Link
                     to="/validar"
-                    className="inline-flex items-center justify-center gap-2 min-h-[46px] px-5 py-3 border border-white/30 hover:border-white hover:bg-white/10 text-white font-semibold text-sm rounded-lg transition-colors whitespace-nowrap shrink-0"
+                    className="inline-flex items-center justify-center gap-2 min-h-[46px] px-5 py-3 bg-white/[0.04] backdrop-blur-sm border border-white/25 hover:border-white hover:bg-white/[0.12] hover:-translate-y-0.5 text-white font-semibold text-sm rounded-lg transition-all duration-200 whitespace-nowrap shrink-0"
                   >
                     <FileCheck2 className="w-4 h-4 text-[#F5C518]" />
                     Validar Certificado
@@ -268,20 +278,20 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
               </div>
 
               {/* Direct NR Quick-Access Strip */}
-              <div className="pt-6 border-t border-white/15 space-y-3">
+              <div className="pt-5 border-t border-white/15 space-y-3">
                 <p className="text-xs font-medium text-slate-300">
-                  Acesso direto às 9 Normas Regulamentadoras disponíveis:
+                  Acesso direto aos treinamentos NR disponíveis (incluindo Formação 40h e Reciclagem):
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {courses.slice(0, 9).map((c) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                  {courses.map((c) => (
                     <Link
                       key={c.id}
                       to={`/cursos/${c.slug}`}
-                      className="group p-2.5 bg-[#0F2C59] hover:bg-[#143970] border border-white/10 hover:border-[#F5C518] rounded-lg transition-colors"
+                      className="group p-2.5 bg-[#0F2C59]/85 backdrop-blur-sm hover:bg-[#153B75] border border-white/10 hover:border-[#F5C518]/80 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.5)]"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-xs font-bold text-[#F5C518]">{c.nrCode}</span>
-                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#F5C518] transition-colors" />
+                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#F5C518] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
                       </div>
                       <p className="text-xs text-slate-200 mt-0.5 truncate">{c.title}</p>
                       <p className="font-mono text-xs font-bold text-white mt-1 tabular-nums">
@@ -295,32 +305,32 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
 
             {/* Right Documentary Photography & Technical Authority */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.99 }}
+              initial={{ opacity: 0, scale: 0.985 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-5 flex flex-col gap-4"
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-5 flex flex-col justify-center gap-4"
             >
-              <div className="relative flex-1 min-h-[280px] rounded-xl overflow-hidden border border-white/15 bg-[#0F2C59]">
+              <div className="group relative w-full aspect-[1376/768] rounded-2xl overflow-hidden border border-white/15 bg-[#0F2C59] shadow-[0_24px_60px_-16px_rgba(0,0,0,0.55)]">
                 <img
                   src={HERO_IMAGE_URL}
                   alt="Engenheira de segurança do trabalho realizando inspeção técnica em obra com uniforme 4k Treinamentos"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain object-center block transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A2540]/90 via-[#0A2540]/20 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-slate-100">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#071B30]/90 via-[#071B30]/40 to-transparent" />
+                <div className="absolute bottom-3.5 left-4 right-4 flex items-center justify-between text-xs text-slate-100">
                   <span className="font-medium">Conteúdo teórico conforme NR-01</span>
                   <span className="font-mono text-[#F5C518] font-bold">100% Online</span>
                 </div>
               </div>
 
               {/* Technical Responsibility Card */}
-              <div className="bg-[#0F2C59] border border-white/15 rounded-xl p-4 flex items-center gap-4">
+              <div className="bg-white/[0.06] backdrop-blur-md border border-white/15 hover:border-[#F5C518]/45 rounded-2xl p-4 flex items-center gap-4 transition-colors duration-200">
                 <img
                   src={INSTRUCTOR_PORTRAIT_URL}
                   alt={settings.defaultInstructorName || 'Eng. Carlos Eduardo Mendes'}
                   referrerPolicy="no-referrer"
-                  className="w-14 h-14 rounded-lg object-cover border border-white/20 shrink-0"
+                  className="w-14 h-14 rounded-xl object-cover border border-white/25 shrink-0"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-mono font-semibold text-[#F5C518] uppercase tracking-wider">
@@ -339,41 +349,61 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
         </div>
 
         {/* 4-Column Authority & Operations Strip */}
-        <div className="bg-[#0F2C59] border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <p className="text-sm font-bold text-white">Base Legal NR-01 (item 1.7)</p>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Conteúdo teórico estruturado em conformidade com as normas do MTE.
-              </p>
+        <div className="bg-[#081F37]/90 backdrop-blur-md border-t border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div className="group flex items-start gap-3.5 p-3 rounded-xl hover:bg-white/[0.05] transition-colors duration-200">
+              <div className="w-9 h-9 rounded-lg bg-white/[0.07] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-[#F5C518]/50 transition-colors">
+                <FileCheck2 className="w-4 h-4 text-[#F5C518]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Base Legal NR-01 (item 1.7)</p>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Conteúdo teórico estruturado em conformidade com as normas do MTE.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">Assinatura de Engenheiro</p>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Certificados emitidos com registro CREA/MTE ativo e validação pública.
-              </p>
+            <div className="group flex items-start gap-3.5 p-3 rounded-xl hover:bg-white/[0.05] transition-colors duration-200">
+              <div className="w-9 h-9 rounded-lg bg-white/[0.07] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-[#F5C518]/50 transition-colors">
+                <Award className="w-4 h-4 text-[#F5C518]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Assinatura de Engenheiro</p>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Certificados emitidos com registro CREA/MTE ativo e validação pública.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">Avaliação Formal Obrigatória</p>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Prova objetiva com nota mínima de 70% registrada no histórico do aluno.
-              </p>
+            <div className="group flex items-start gap-3.5 p-3 rounded-xl hover:bg-white/[0.05] transition-colors duration-200">
+              <div className="w-9 h-9 rounded-lg bg-white/[0.07] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-[#F5C518]/50 transition-colors">
+                <ClipboardCheck className="w-4 h-4 text-[#F5C518]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Avaliação Formal Obrigatória</p>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Prova objetiva com nota mínima de 70% registrada no histórico do aluno.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">Liberação via InfinitePay</p>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Pagamento por Pix ou cartão com matrícula automática após confirmação.
-              </p>
+            <div className="group flex items-start gap-3.5 p-3 rounded-xl hover:bg-white/[0.05] transition-colors duration-200">
+              <div className="w-9 h-9 rounded-lg bg-white/[0.07] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-[#F5C518]/50 transition-colors">
+                <ShieldCheck className="w-4 h-4 text-[#F5C518]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Liberação via InfinitePay</p>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Pagamento por Pix ou cartão com matrícula automática após confirmação.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* 2. CATÁLOGO OFICIAL DE CURSOS & COMBOS */}
-      <section id="cursos" className="py-16 lg:py-22 bg-[#F7F9FC]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <section id="cursos" className="py-14 lg:py-20 bg-[#F7F9FC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-9">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
+            <div className="space-y-1.5 max-w-2xl">
               <p className="text-xs font-mono font-bold text-[#0F2C59] tracking-wider uppercase">
                 Catálogo Oficial de Cursos NR
               </p>
@@ -384,18 +414,28 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
 
             {/* Search & Clean Filter Bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative group">
+                <Search className="w-4 h-4 text-slate-400 group-focus-within:text-[#0A2540] transition-colors absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar NR ou tema..."
-                  className="pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-[#0A2540] w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-[#0A2540]"
+                  className="pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-[#0A2540] w-full sm:w-60 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0A2540] focus:border-[#0A2540] transition-all"
                 />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    aria-label="Limpar busca"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#0A2540] rounded-md cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-1 p-1 bg-slate-200/70 rounded-lg overflow-x-auto">
+              <div className="flex items-center gap-1 p-1 bg-slate-200/75 border border-slate-200/80 rounded-xl overflow-x-auto">
                 {FILTER_TABS.map((t) => {
                   const active = filter === t.id;
                   return (
@@ -403,15 +443,15 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                       key={t.id}
                       type="button"
                       onClick={() => setFilter(t.id)}
-                      className={`relative px-3.5 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                      className={`relative px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                         active ? 'text-white' : 'text-slate-700 hover:text-[#0A2540]'
                       }`}
                     >
                       {active && (
                         <motion.span
                           layoutId="catalogFilterPill"
-                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                          className="absolute inset-0 bg-[#0A2540] rounded-md shadow-xs"
+                          transition={{ type: 'spring', stiffness: 450, damping: 34 }}
+                          className="absolute inset-0 bg-[#0A2540] rounded-lg shadow-sm"
                         />
                       )}
                       <span className="relative z-10">{t.label}</span>
@@ -425,20 +465,20 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
           {/* Featured Spotlight (NR-35) */}
           {!loadingCourses && filter === 'all' && !searchTerm && featuredSpotlight && (
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(10,37,64,0.06)] grid grid-cols-1 lg:grid-cols-12"
+              transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+              className="group bg-white border border-slate-200/90 hover:border-[#0A2540]/30 rounded-2xl overflow-hidden shadow-[0_14px_40px_-16px_rgba(10,37,64,0.12)] hover:shadow-[0_24px_54px_-16px_rgba(10,37,64,0.18)] transition-all duration-300 grid grid-cols-1 lg:grid-cols-12"
             >
-              <div className="lg:col-span-5 relative min-h-[240px] bg-[#0A2540]">
+              <div className="lg:col-span-5 relative min-h-[250px] bg-[#0A2540] overflow-hidden">
                 <img
                   src={featuredSpotlight.coverImageUrl}
                   alt={featuredSpotlight.title}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A2540]/85 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#071B30]/92 via-[#0A2540]/20 to-transparent" />
                 <div className="absolute bottom-4 left-5 text-xs font-mono text-[#F5C518] font-bold">
                   MAIS PROCURADO · {featuredSpotlight.nrCode}
                 </div>
@@ -486,13 +526,44 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                       </span>
                     </div>
                   </div>
-                  <Link
-                    to={`/cursos/${featuredSpotlight.slug}`}
-                    className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap"
-                  >
-                    Ver programa e matricular
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Link
+                      to={`/cursos/${featuredSpotlight.slug}`}
+                      className="inline-flex items-center justify-center min-h-[44px] px-4 py-3 border border-slate-300 hover:border-[#0A2540] hover:bg-slate-50 text-[#0A2540] text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      Ver programa
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={spotlightCheckoutLoading}
+                      onClick={async () => {
+                        setSpotlightCheckoutLoading(true);
+                        try {
+                          await startDirectCourseCheckout(featuredSpotlight, { user, profile });
+                        } catch (err) {
+                          toast.error(
+                            err instanceof Error
+                              ? err.message
+                              : 'Não foi possível gerar o link de pagamento InfinitePay.'
+                          );
+                          setSpotlightCheckoutLoading(false);
+                        }
+                      }}
+                      className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 text-[#0A2540] text-sm font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_8px_20px_-6px_rgba(245,197,24,0.6)] cursor-pointer"
+                    >
+                      {spotlightCheckoutLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Redirecionando...
+                        </>
+                      ) : (
+                        <>
+                          Matricular-se agora
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -554,7 +625,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                   return (
                     <div
                       key={combo.id}
-                      className="bg-[#0A2540] text-white border border-white/10 rounded-xl p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-sm"
+                      className="bg-navy-grid text-white border border-white/15 hover:border-[#F5C518]/50 rounded-2xl p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-[0_16px_40px_-16px_rgba(10,37,64,0.35)] hover:-translate-y-0.5 transition-all duration-300"
                     >
                       <div className="space-y-4">
                         <div className="flex items-center justify-between gap-3 text-xs font-mono">
@@ -611,7 +682,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
 
                         <Link
                           to={`/checkout/combo/${combo.id}`}
-                          className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap shrink-0"
+                          className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 text-[#0A2540] text-sm font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shrink-0 shadow-[0_8px_20px_-6px_rgba(245,197,24,0.6)]"
                         >
                           Aproveitar pacote
                           <ArrowRight className="w-4 h-4" />
@@ -637,7 +708,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
       <CertificateSpecimen courses={courses} settings={settings} />
 
       {/* 4. COMO FUNCIONA EM 4 ETAPAS */}
-      <section id="como-funciona" className="py-16 lg:py-22 bg-[#F7F9FC]">
+      <section id="como-funciona" className="py-16 lg:py-20 bg-[#F7F9FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-10 space-y-2">
             <p className="text-xs font-mono font-bold text-[#0F2C59] tracking-wider uppercase">
@@ -652,14 +723,14 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
             {STEPS.map((step, idx) => (
               <motion.div
                 key={step.num}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
-                className="bg-white border border-slate-200 rounded-xl p-6 space-y-3 shadow-[0_4px_20px_-4px_rgba(10,37,64,0.04)]"
+                transition={{ duration: 0.34, delay: idx * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                className="group bg-white border border-slate-200/90 hover:border-[#0A2540]/30 rounded-2xl p-6 space-y-3 shadow-[0_6px_24px_-8px_rgba(10,37,64,0.06)] hover:shadow-[0_20px_40px_-16px_rgba(10,37,64,0.16)] hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <span className="w-9 h-9 rounded-lg bg-[#0A2540] text-[#F5C518] font-mono text-sm font-extrabold flex items-center justify-center">
+                  <span className="w-9 h-9 rounded-lg bg-[#0A2540] group-hover:bg-[#F5C518] text-[#F5C518] group-hover:text-[#0A2540] font-mono text-sm font-extrabold flex items-center justify-center transition-colors duration-200">
                     {step.num}
                   </span>
                   <span className="text-xs font-mono text-slate-400">ETAPA</span>
@@ -673,10 +744,16 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
       </section>
 
       {/* 5. PROVA SOCIAL, MÉTRICAS & CONFORMIDADE NORMATIVA */}
-      <section className="py-16 lg:py-22 bg-white border-y border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <section className="py-16 lg:py-20 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
           {/* Authority Numbers Strip */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[#0A2540] text-white rounded-xl p-6 sm:p-8">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-navy-grid text-white rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_-16px_rgba(10,37,64,0.38)] border border-white/10"
+          >
             <div className="flex items-center gap-4">
               <Award className="w-9 h-9 text-[#F5C518] shrink-0" />
               <div>
@@ -698,7 +775,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                 <p className="text-xs text-slate-300">Avaliação média dos alunos e técnicos de segurança</p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             <div className="lg:col-span-4 space-y-3">
@@ -713,7 +790,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
               </p>
             </div>
 
-            <div className="lg:col-span-8 bg-[#F7F9FC] border border-slate-200 rounded-xl overflow-x-auto">
+            <div className="lg:col-span-8 bg-[#F7F9FC] border border-slate-200 rounded-2xl overflow-x-auto shadow-[0_8px_28px_-12px_rgba(10,37,64,0.08)]">
               <table className="w-full text-left text-sm">
                 <thead className="bg-[#0A2540] text-white text-xs uppercase font-mono">
                   <tr>
@@ -724,7 +801,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {COMPLIANCE_ROWS.map((row) => (
-                    <tr key={row.norm} className="bg-white">
+                    <tr key={row.norm} className="bg-white hover:bg-[#F7F9FC] transition-colors">
                       <td className="py-3.5 px-4 font-mono text-xs font-bold text-[#0A2540] whitespace-nowrap">
                         {row.norm}
                       </td>
@@ -756,10 +833,14 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                     rating: t.rating,
                   }))
                 : TESTIMONIALS.map((t) => ({ ...t, rating: 5 }))
-              ).map((item) => (
-                <blockquote
+              ).map((item, idx) => (
+                <motion.blockquote
                   key={item.author}
-                  className="bg-[#F7F9FC] border border-slate-200 rounded-xl p-6 flex flex-col justify-between gap-6"
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                  className="bg-[#F7F9FC] border border-slate-200/90 hover:border-[#0A2540]/25 rounded-2xl p-6 flex flex-col justify-between gap-6 hover:shadow-[0_16px_36px_-14px_rgba(10,37,64,0.12)] hover:-translate-y-0.5 transition-all duration-300"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center gap-1 text-[#F5C518]">
@@ -775,7 +856,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                       {item.role} · <span className="font-semibold text-[#0F2C59]">{item.company}</span>
                     </p>
                   </footer>
-                </blockquote>
+                </motion.blockquote>
               ))}
             </div>
           </div>
@@ -799,21 +880,21 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                 </p>
               </div>
 
-              <div className="relative rounded-xl overflow-hidden border border-slate-200 aspect-[16/10] bg-[#0A2540]">
+              <div className="group relative rounded-2xl overflow-hidden border border-slate-200 aspect-[16/10] bg-[#0A2540] shadow-[0_14px_34px_-14px_rgba(10,37,64,0.22)]">
                 <img
                   src={CORPORATE_TEAM_URL}
                   alt="Equipe industrial uniformizada com a marca 4k Treinamentos"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A2540]/85 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#071B30]/90 via-transparent to-transparent" />
                 <p className="absolute bottom-3.5 left-4 right-4 text-xs text-white font-medium">
                   Capacitação padronizada para indústrias, construtoras e prestadores de serviço
                 </p>
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(10,37,64,0.05)]">
+            <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-[0_14px_40px_-16px_rgba(10,37,64,0.08)]">
               {quoteSuccess ? (
                 <div className="h-full flex flex-col items-center justify-center py-12 text-center space-y-4">
                   <ShieldCheck className="w-12 h-12 text-emerald-600" />
@@ -963,7 +1044,7 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
       </section>
 
       {/* 7. FINAL CTA & CONTACT */}
-      <section id="contato" className="py-16 bg-[#0F2C59] text-white border-t border-white/10">
+      <section id="contato" className="py-16 bg-navy-grid text-white border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div className="space-y-2 max-w-2xl">
             <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -976,13 +1057,13 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <a
               href="#cursos"
-              className="inline-flex items-center justify-center min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] font-extrabold text-sm rounded-lg transition-colors whitespace-nowrap"
+              className="btn-sheen inline-flex items-center justify-center min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 text-[#0A2540] font-extrabold text-sm rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_10px_24px_-8px_rgba(245,197,24,0.6)]"
             >
               Escolher curso agora
             </a>
             <Link
               to="/aluno"
-              className="inline-flex items-center justify-center min-h-[46px] px-5 py-3 border border-white/30 hover:border-white hover:bg-white/10 text-white font-semibold text-sm rounded-lg transition-colors whitespace-nowrap"
+              className="inline-flex items-center justify-center min-h-[46px] px-5 py-3 bg-white/[0.04] border border-white/25 hover:border-white hover:bg-white/[0.12] text-white font-semibold text-sm rounded-lg transition-colors whitespace-nowrap"
             >
               Acessar Área do Aluno
             </Link>
@@ -992,3 +1073,4 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
     </main>
   );
 }
+

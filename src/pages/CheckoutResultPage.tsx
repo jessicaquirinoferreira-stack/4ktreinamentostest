@@ -13,7 +13,7 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { formatCurrencyBRL, formatInstallmentBRL } from '../data/seedCourses';
+import { formatCurrencyBRL, formatInstallmentBRL, getNrFamilyKey } from '../data/seedCourses';
 import { db } from '../lib/firebase';
 import {
   attachCheckoutUrlToOrder,
@@ -28,9 +28,17 @@ export function CheckoutSuccessPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { user, profile, isAdmin } = useAuth();
-  const orderNsu = params.get('order_nsu') || '';
+  const fallbackOrderNsu = (() => {
+    try {
+      return localStorage.getItem('4k_last_order_nsu') || '';
+    } catch {
+      return '';
+    }
+  })();
+  const orderNsu = params.get('order_nsu') || fallbackOrderNsu;
   const transactionNsu = params.get('transaction_nsu') || '';
   const slug = params.get('slug') || '';
+  const receiptUrl = params.get('receipt_url') || '';
   const upsellDone = params.get('upsell') === 'done';
   const testPaid = params.get('test_paid') === '1';
 
@@ -58,6 +66,17 @@ export function CheckoutSuccessPage() {
           if (snap.exists()) {
             fetchedOrder = snap.data() as Order;
             setOrder(fetchedOrder);
+          }
+        }
+        if (!fetchedOrder) {
+          try {
+            const cachedRaw = localStorage.getItem(`4k_pending_order_${orderNsu}`);
+            if (cachedRaw) {
+              fetchedOrder = JSON.parse(cachedRaw) as Order;
+              setOrder(fetchedOrder);
+            }
+          } catch {
+            // ignore storage errors
           }
         }
 
@@ -93,20 +112,23 @@ export function CheckoutSuccessPage() {
             fetchPublishedCourses(),
           ]);
           const purchasedIds = fetchedOrder?.courseIds || (fetchedOrder ? [fetchedOrder.courseId] : []);
+          const purchasedFamilies = new Set(purchasedIds.map((id) => getNrFamilyKey(id)));
           const primaryId = fetchedOrder?.courseId || '';
+          const primaryFamily = getNrFamilyKey(primaryId);
 
           const matched =
             offers.find(
               (o) =>
                 o.type === 'upsell' &&
-                o.triggerCourseId === primaryId &&
-                !o.includedCourseIds.some((cid) => purchasedIds.includes(cid))
+                (o.triggerCourseId === primaryId ||
+                  (primaryFamily && o.triggerCourseId === primaryFamily)) &&
+                !o.includedCourseIds.some((cid) => purchasedFamilies.has(getNrFamilyKey(cid)))
             ) ||
             offers.find(
               (o) =>
                 o.type === 'upsell' &&
                 o.triggerCourseId === 'all' &&
-                !o.includedCourseIds.some((cid) => purchasedIds.includes(cid))
+                !o.includedCourseIds.some((cid) => purchasedFamilies.has(getNrFamilyKey(cid)))
             ) ||
             null;
 
@@ -216,6 +238,18 @@ export function CheckoutSuccessPage() {
             {orderNsu && (
               <p className="font-mono text-xs text-slate-500 pt-1">
                 Pedido: {orderNsu} {order ? `· ${order.courseTitle}` : ''}
+              </p>
+            )}
+            {receiptUrl && /^https?:\/\//i.test(receiptUrl) && (
+              <p className="pt-1">
+                <a
+                  href={receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-[#0F2C59] underline hover:text-[#0A2540]"
+                >
+                  Abrir comprovante oficial InfinitePay
+                </a>
               </p>
             )}
           </div>

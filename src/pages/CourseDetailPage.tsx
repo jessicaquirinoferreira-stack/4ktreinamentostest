@@ -11,6 +11,7 @@ import {
   Clock,
   FileCheck2,
   Gift,
+  Loader2,
   Lock,
   MinusCircle,
   ShieldCheck,
@@ -22,6 +23,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   formatCurrencyBRL,
   formatInstallmentBRL,
+  getNrFamilyKey,
   INSTRUCTOR_PORTRAIT_URL,
 } from '../data/seedCourses';
 import {
@@ -29,9 +31,11 @@ import {
   fetchCourseBySlug,
   fetchCourseModules,
   fetchFunnelOffers,
+  fetchPublishedCourses,
   fetchTestimonials,
   releaseOrderAndEnrollAdmin,
 } from '../lib/firestoreService';
+import { startDirectCourseCheckout } from '../lib/infinitepayClient';
 import type { Course, CourseModule, FunnelOffer, Testimonial } from '../types';
 
 export function CourseDetailPage() {
@@ -41,11 +45,13 @@ export function CourseDetailPage() {
   const { scrollY } = useScroll();
 
   const [course, setCourse] = useState<Course | null>(null);
+  const [siblingVariants, setSiblingVariants] = useState<Course[]>([]);
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [combos, setCombos] = useState<FunnelOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyingTest, setBuyingTest] = useState(false);
+  const [startingCheckout, setStartingCheckout] = useState(false);
   const [openModuleIdx, setOpenModuleIdx] = useState<number | null>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showStickyCta, setShowStickyCta] = useState(false);
@@ -57,10 +63,16 @@ export function CourseDetailPage() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    fetchCourseBySlug(slug)
-      .then(async (found) => {
+    Promise.all([fetchCourseBySlug(slug), fetchPublishedCourses()])
+      .then(async ([found, publishedList]) => {
         setCourse(found);
         if (found) {
+          const familyKey = getNrFamilyKey(found.id);
+          const siblings = publishedList
+            .filter((c) => getNrFamilyKey(c.id) === familyKey)
+            .sort((a, b) => b.workloadHours - a.workloadHours);
+          setSiblingVariants(siblings);
+
           const [mods, tests, offers] = await Promise.all([
             fetchCourseModules(found.id),
             fetchTestimonials(found.id, true),
@@ -72,9 +84,13 @@ export function CourseDetailPage() {
             offers.filter(
               (o) =>
                 o.type === 'combo' &&
-                (o.includedCourseIds.includes(found.id) || o.triggerCourseId === found.id)
+                (o.includedCourseIds.includes(found.id) ||
+                  o.triggerCourseId === found.id ||
+                  o.includedCourseIds.some((cid) => getNrFamilyKey(cid) === familyKey))
             )
           );
+        } else {
+          setSiblingVariants([]);
         }
       })
       .finally(() => setLoading(false));
@@ -121,6 +137,21 @@ export function CourseDetailPage() {
     }
   }
 
+  async function handleInfinitePayDirectEnroll() {
+    if (!course || startingCheckout) return;
+    setStartingCheckout(true);
+    try {
+      await startDirectCourseCheckout(course, { user, profile });
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível gerar o checkout InfinitePay. Tente novamente.'
+      );
+      setStartingCheckout(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -157,7 +188,7 @@ export function CourseDetailPage() {
   return (
     <main className="bg-[#F7F9FC] text-[#0A2540] pb-24">
       {/* 1. HIGH-CONVERSION SALES HERO */}
-      <section className="bg-[#0A2540] text-white border-b border-white/10">
+      <section className="bg-navy-grid text-white border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
           <Link
             to="/"
@@ -250,6 +281,46 @@ export function CourseDetailPage() {
               )}
 
               <div className="p-6 space-y-5">
+                {siblingVariants.length > 1 && (
+                  <div className="space-y-2 pb-4 border-b border-slate-100">
+                    <span className="text-xs font-mono font-bold text-[#0F2C59] uppercase tracking-wider block">
+                      Escolha a carga horária / modalidade
+                    </span>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {siblingVariants.map((variant) => {
+                        const isSelected = variant.id === course.id;
+                        const is40h = variant.workloadHours === 40;
+                        const variantLabel = is40h
+                          ? `Formação · ${variant.workloadHours}h`
+                          : `Reciclagem · ${variant.workloadHours}h`;
+                        return (
+                          <Link
+                            key={variant.id}
+                            to={`/cursos/${variant.slug}`}
+                            aria-current={isSelected ? 'page' : undefined}
+                            className={`p-3 rounded-lg border text-left transition-colors ${
+                              isSelected
+                                ? 'border-[#0A2540] bg-[#0A2540] text-white'
+                                : 'border-slate-200 bg-[#F7F9FC] hover:border-[#0A2540] text-[#0A2540]'
+                            }`}
+                          >
+                            <span
+                              className={`block text-xs font-bold whitespace-nowrap ${
+                                isSelected ? 'text-[#F5C518]' : 'text-[#0F2C59]'
+                              }`}
+                            >
+                              {variantLabel}
+                            </span>
+                            <span className="block font-mono text-sm font-extrabold tabular-nums mt-0.5">
+                              {formatCurrencyBRL(variant.priceCents)}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs text-slate-500">
                     <span className="line-through font-mono tabular-nums">
@@ -271,13 +342,31 @@ export function CourseDetailPage() {
                 </div>
 
                 <div className="space-y-2.5">
+                  <button
+                    type="button"
+                    disabled={startingCheckout}
+                    onClick={handleInfinitePayDirectEnroll}
+                    className="btn-sheen w-full min-h-[48px] py-3.5 px-5 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-60 text-[#0A2540] font-extrabold text-sm sm:text-base rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0_10px_24px_-8px_rgba(245,197,24,0.55)] cursor-pointer"
+                  >
+                    {startingCheckout ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Abrindo checkout InfinitePay...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        Matricular-se agora (Pix ou 12x)
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
                   <Link
                     to={`/checkout/${course.slug}`}
-                    className="w-full min-h-[48px] py-3.5 px-5 bg-[#F5C518] hover:bg-[#E0B20F] active:scale-[0.99] text-[#0A2540] font-extrabold text-sm sm:text-base rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm"
+                    className="block text-center text-xs font-medium text-[#0F2C59] hover:underline py-1"
                   >
-                    <Lock className="w-4 h-4" />
-                    Garantir minha vaga agora
-                    <ArrowRight className="w-4 h-4" />
+                    Ou informar dados do aluno / adicionar outro curso no checkout
                   </Link>
 
                   {isAdmin && user && (
@@ -427,13 +516,15 @@ export function CourseDetailPage() {
               ))}
             </ul>
             <div className="pt-3 border-t border-slate-100">
-              <Link
-                to={`/checkout/${course.slug}`}
-                className="w-full min-h-[44px] py-3 px-4 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors flex items-center justify-center gap-2"
+              <button
+                type="button"
+                disabled={startingCheckout}
+                onClick={handleInfinitePayDirectEnroll}
+                className="w-full min-h-[44px] py-3 px-4 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                Garantir acesso + bônus agora
+                {startingCheckout ? 'Abrindo InfinitePay...' : 'Garantir acesso + bônus agora'}
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </div>
         </section>
@@ -545,7 +636,7 @@ export function CourseDetailPage() {
         </section>
 
         {/* How it Works (Estudar -> Prova -> Certificado) */}
-        <section className="bg-[#0A2540] text-white rounded-xl p-6 sm:p-10 space-y-6">
+        <section className="bg-navy-grid text-white rounded-2xl p-6 sm:p-10 space-y-6 shadow-[0_20px_50px_-16px_rgba(10,37,64,0.35)]">
           <div className="max-w-2xl space-y-1.5">
             <p className="text-xs font-mono font-bold text-[#F5C518] tracking-wider uppercase">
               Passo a Passo Simples
@@ -601,12 +692,14 @@ export function CourseDetailPage() {
               </p>
             </div>
           </div>
-          <Link
-            to={`/checkout/${course.slug}`}
-            className="inline-flex items-center justify-center min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] font-extrabold text-sm rounded-lg transition-colors whitespace-nowrap shrink-0"
+          <button
+            type="button"
+            disabled={startingCheckout}
+            onClick={handleInfinitePayDirectEnroll}
+            className="inline-flex items-center justify-center min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] font-extrabold text-sm rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            Matricular sem risco
-          </Link>
+            {startingCheckout ? 'Abrindo InfinitePay...' : 'Matricular sem risco'}
+          </button>
         </section>
 
         {/* Verified Testimonials */}
@@ -702,12 +795,14 @@ export function CourseDetailPage() {
                   ou {formatInstallmentBRL(course.priceCents)}
                 </span>
               </div>
-              <Link
-                to={`/checkout/${course.slug}`}
-                className="inline-flex items-center justify-center min-h-[42px] px-4 sm:px-5 py-2 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] text-xs sm:text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap"
+              <button
+                type="button"
+                disabled={startingCheckout}
+                onClick={handleInfinitePayDirectEnroll}
+                className="inline-flex items-center justify-center min-h-[42px] px-4 sm:px-5 py-2 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] text-xs sm:text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
               >
-                Matricular agora
-              </Link>
+                {startingCheckout ? 'Redirecionando...' : 'Matricular agora'}
+              </button>
             </div>
           </div>
         </div>

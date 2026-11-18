@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
+  AlertCircle,
   ArrowLeft,
   CheckCircle2,
   CreditCard,
+  Loader2,
   Lock,
   QrCode,
   ShieldCheck,
@@ -14,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   formatCurrencyBRL,
   formatInstallmentBRL,
+  getNrFamilyKey,
   OFFICIAL_LOGO_URL,
 } from '../data/seedCourses';
 import {
@@ -50,6 +53,8 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
   const [buyerCpf, setBuyerCpf] = useState('');
   const [buyerPassword, setBuyerPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loadingMethod, setLoadingMethod] = useState<'pix' | 'card' | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [missingHandlePrompt, setMissingHandlePrompt] = useState(false);
 
   useEffect(() => {
@@ -76,11 +81,14 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
           setCourse(foundCourse);
 
           if (foundCourse) {
+            const currentFamily = getNrFamilyKey(foundCourse.id);
             const matchingBumps = offers.filter(
               (o) =>
                 o.type === 'order_bump' &&
-                (o.triggerCourseId === foundCourse.id || o.triggerCourseId === 'all') &&
-                !o.includedCourseIds.includes(foundCourse.id)
+                (o.triggerCourseId === foundCourse.id ||
+                  o.triggerCourseId === currentFamily ||
+                  o.triggerCourseId === 'all') &&
+                !o.includedCourseIds.some((cid) => getNrFamilyKey(cid) === currentFamily)
             );
             setOrderBumps(matchingBumps);
           }
@@ -118,6 +126,14 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
     return Array.from(set);
   }, [baseCourseIds, activeSelectedBumps]);
 
+  const siblingVariants = useMemo(() => {
+    if (mode !== 'course' || !course) return [];
+    const family = getNrFamilyKey(course.id);
+    return allCourses
+      .filter((c) => getNrFamilyKey(c.id) === family)
+      .sort((a, b) => b.workloadHours - a.workloadHours);
+  }, [mode, course, allCourses]);
+
   const primaryTitle =
     mode === 'combo' && combo
       ? combo.title
@@ -145,105 +161,164 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
     return await loginWithEmail(buyerEmail.trim(), buyerPassword);
   }
 
-  async function handleCompleteCheckout(e: React.FormEvent) {
-    e.preventDefault();
-    if ((!course && !combo) || allIncludedCourseIds.length === 0) return;
+  async function initiateInfinitePayCheckout(chosenMethod: 'pix' | 'card') {
+    if (submitting || (!course && !combo) || allIncludedCourseIds.length === 0) return;
 
+    setPaymentMethod(chosenMethod);
+    setLoadingMethod(chosenMethod);
     setSubmitting(true);
+    setCheckoutError(null);
     setMissingHandlePrompt(false);
-    try {
-      const authedUser = await ensureAuthenticatedUser();
-      const customerName = buyerName.trim() || profile?.name || authedUser.displayName || 'Aluno 4k';
-      const customerEmail = buyerEmail.trim() || authedUser.email || '';
 
-      const orderId = `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    try {
+      let authedUser = user;
+      if (!authedUser && buyerEmail.trim() && buyerPassword) {
+        try {
+          authedUser = await ensureAuthenticatedUser();
+        } catch (authErr: any) {
+          if (authErr?.code === 'auth/operation-not-allowed') {
+            authedUser = null;
+          } else {
+            throw authErr;
+          }
+        }
+      }
+
+      const customerName =
+        buyerName.trim() || profile?.name || authedUser?.displayName || '';
+      const customerEmail =
+        buyerEmail.trim() || authedUser?.email || '';
+
+      const slugToken = (mode === 'combo' && combo ? combo.id : course!.slug)
+        .replace(/[^a-zA-Z0-9-]/g, '')
+        .toUpperCase();
+      const orderId = `pedido-${slugToken}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+      const primaryDescription =
+        mode === 'combo' && combo
+          ? combo.title
+          : `${course!.nrCode} - ${course!.workloadHours}h – ${course!.title}`;
 
       const itemsSummary: OrderItemSummary[] = [
         {
           id: mode === 'combo' && combo ? combo.id : course!.id,
-          title: primaryTitle,
-          priceCents: basePriceCents,
+          title: primaryDescription,
+          priceCents: Math.round(basePriceCents),
           kind: mode === 'combo' ? 'combo' : 'course',
         },
         ...activeSelectedBumps.map((b) => ({
           id: b.id,
           title: b.title,
-          priceCents: b.offerPriceCents,
+          priceCents: Math.round(b.offerPriceCents),
           kind: 'bump' as const,
         })),
       ];
 
-      await createPendingOrder({
-        id: orderId,
-        userId: authedUser.uid,
-        userName: customerName,
-        userEmail: customerEmail,
-        courseId: allIncludedCourseIds[0],
-        courseIds: allIncludedCourseIds,
-        courseTitle:
-          activeSelectedBumps.length > 0
-            ? `${primaryTitle} + ${activeSelectedBumps.map((b) => b.title).join(', ')}`.slice(0, 220)
-            : primaryTitle.slice(0, 220),
-        itemsSummary,
-        ...(activeSelectedBumps[0] ? { orderBumpId: activeSelectedBumps[0].id } : {}),
-        ...(mode === 'combo' && combo ? { comboId: combo.id } : {}),
-        amountCents: totalPriceCents,
-        status: 'pending',
-        paymentProvider: 'infinitepay',
-      });
+      const combinedTitle =
+        activeSelectedBumps.length > 0
+          ? `${primaryDescription} + ${activeSelectedBumps.map((b) => b.title).join(', ')}`.slice(0, 220)
+          : primaryDescription.slice(0, 220);
+
+      try {
+        localStorage.setItem('4k_last_order_nsu', orderId);
+        localStorage.setItem(
+          `4k_pending_order_${orderId}`,
+          JSON.stringify({
+            id: orderId,
+            courseId: allIncludedCourseIds[0],
+            courseIds: allIncludedCourseIds,
+            courseTitle: combinedTitle,
+            amountCents: Math.round(totalPriceCents),
+            paymentMethod: chosenMethod,
+            customerName,
+            customerEmail,
+          })
+        );
+      } catch {
+        // Ignore storage quota errors
+      }
+
+      if (authedUser) {
+        await createPendingOrder({
+          id: orderId,
+          userId: authedUser.uid,
+          userName: customerName || 'Aluno 4k',
+          userEmail: customerEmail,
+          courseId: allIncludedCourseIds[0],
+          courseIds: allIncludedCourseIds,
+          courseTitle: combinedTitle,
+          itemsSummary,
+          ...(activeSelectedBumps[0] ? { orderBumpId: activeSelectedBumps[0].id } : {}),
+          ...(mode === 'combo' && combo ? { comboId: combo.id } : {}),
+          amountCents: Math.round(totalPriceCents),
+          status: 'pending',
+          paymentProvider: 'infinitepay',
+        }).catch(() => {});
+      }
 
       const res = await fetch('/api/checkout/create-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId,
+          order_nsu: orderId,
           items: itemsSummary.map((it) => ({
-            description: it.title.slice(0, 120),
-            price: it.priceCents,
             quantity: 1,
+            price: Math.round(it.priceCents),
+            description: it.title.slice(0, 120),
           })),
           customerName,
           customerEmail,
-          redirectPath: `/checkout/sucesso?order_nsu=${encodeURIComponent(orderId)}`,
+          redirectPath: '/obrigado',
           orderMeta: {
-            userId: authedUser.uid,
-            userName: customerName,
+            userId: authedUser?.uid || `guest_${orderId}`,
+            userName: customerName || 'Aluno 4k',
             userEmail: customerEmail,
             courseIds: allIncludedCourseIds,
-            courseTitle:
-              activeSelectedBumps.length > 0
-                ? `${primaryTitle} + ${activeSelectedBumps.map((b) => b.title).join(', ')}`.slice(0, 220)
-                : primaryTitle.slice(0, 220),
-            amountCents: totalPriceCents,
+            courseTitle: combinedTitle,
+            amountCents: Math.round(totalPriceCents),
           },
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) {
         if (data.requiresHandleConfig) {
           setMissingHandlePrompt(true);
-          toast.warning('InfiniteTag não configurada no Painel Admin.');
+          const msg = 'InfiniteTag não configurada no Painel Admin.';
+          setCheckoutError(msg);
+          toast.warning(msg);
           return;
         }
-        throw new Error(data.error || 'Falha ao iniciar pagamento.');
+        throw new Error(
+          data.error || 'Não foi possível gerar o link de pagamento na InfinitePay. Tente novamente.'
+        );
       }
 
-      if (data.url) {
+      if (authedUser) {
         await attachCheckoutUrlToOrder(orderId, data.url).catch(() => {});
-        window.location.assign(data.url);
       }
+      window.location.assign(data.url);
     } catch (err: any) {
-      if (err?.code === 'auth/operation-not-allowed') {
-        toast.error(
-          'Ative Email/Password no Firebase Console ou clique em "Continuar com Google" acima.'
-        );
-      } else {
-        toast.error(err instanceof Error ? err.message : 'Não foi possível concluir o checkout.');
+      let friendlyMsg = 'Não foi possível iniciar o pagamento. Tente novamente em instantes.';
+      if (err?.code === 'auth/invalid-credential' || err?.code === 'auth/wrong-password') {
+        friendlyMsg = 'E-mail ou senha incorretos. Corrija sua senha ou deixe o campo em branco para prosseguir direto ao pagamento.';
+      } else if (err?.code === 'auth/email-already-in-use') {
+        friendlyMsg = 'Este e-mail já possui conta. Clique em "Já tenho conta na 4k" ou deixe a senha em branco para ir direto ao pagamento.';
+      } else if (err instanceof Error && err.message) {
+        friendlyMsg = err.message;
       }
+      setCheckoutError(friendlyMsg);
+      toast.error(friendlyMsg);
     } finally {
       setSubmitting(false);
+      setLoadingMethod(null);
     }
+  }
+
+  async function handleCompleteCheckout(e: React.FormEvent) {
+    e.preventDefault();
+    await initiateInfinitePayCheckout(paymentMethod);
   }
 
   async function handleAdminTestInstantRelease() {
@@ -334,7 +409,7 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
-        <form onSubmit={handleCompleteCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <form noValidate onSubmit={handleCompleteCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* LEFT COLUMN: Account + Order Bump + Payment Method */}
           <div className="lg:col-span-7 space-y-6">
             {/* STEP 1: Student Identification */}
@@ -493,7 +568,7 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
                         <input
                           type="checkbox"
                           checked={checked}
-                          onChange={() => {}}
+                          onChange={() => toggleBump(bump.id)}
                           onClick={(e) => e.stopPropagation()}
                           className="mt-1 w-5 h-5 accent-[#0A2540] cursor-pointer shrink-0"
                         />
@@ -557,16 +632,23 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('pix')}
-                  className={`p-4 rounded-lg border text-left flex items-start gap-3 cursor-pointer transition-colors ${
+                  disabled={submitting}
+                  onClick={() => initiateInfinitePayCheckout('pix')}
+                  className={`p-4 rounded-lg border text-left flex items-start gap-3 cursor-pointer transition-colors disabled:opacity-60 ${
                     paymentMethod === 'pix'
                       ? 'border-[#0A2540] bg-[#F7F9FC] ring-1 ring-[#0A2540]'
-                      : 'border-slate-200 hover:border-slate-300'
+                      : 'border-slate-200 hover:border-[#0A2540] hover:bg-[#F7F9FC]'
                   }`}
                 >
-                  <QrCode className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  {submitting && loadingMethod === 'pix' ? (
+                    <Loader2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 animate-spin" />
+                  ) : (
+                    <QrCode className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  )}
                   <div>
-                    <span className="block font-bold text-sm text-[#0A2540]">Pix Instantâneo</span>
+                    <span className="block font-bold text-sm text-[#0A2540]">
+                      {submitting && loadingMethod === 'pix' ? 'Gerando Pix na InfinitePay...' : 'Pix Instantâneo'}
+                    </span>
                     <span className="block text-xs text-slate-600 mt-0.5">
                       Liberação imediata na Área do Aluno em segundos
                     </span>
@@ -575,22 +657,42 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
 
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-4 rounded-lg border text-left flex items-start gap-3 cursor-pointer transition-colors ${
+                  disabled={submitting}
+                  onClick={() => initiateInfinitePayCheckout('card')}
+                  className={`p-4 rounded-lg border text-left flex items-start gap-3 cursor-pointer transition-colors disabled:opacity-60 ${
                     paymentMethod === 'card'
                       ? 'border-[#0A2540] bg-[#F7F9FC] ring-1 ring-[#0A2540]'
-                      : 'border-slate-200 hover:border-slate-300'
+                      : 'border-slate-200 hover:border-[#0A2540] hover:bg-[#F7F9FC]'
                   }`}
                 >
-                  <CreditCard className="w-5 h-5 text-[#0F2C59] shrink-0 mt-0.5" />
+                  {submitting && loadingMethod === 'card' ? (
+                    <Loader2 className="w-5 h-5 text-[#0F2C59] shrink-0 mt-0.5 animate-spin" />
+                  ) : (
+                    <CreditCard className="w-5 h-5 text-[#0F2C59] shrink-0 mt-0.5" />
+                  )}
                   <div>
-                    <span className="block font-bold text-sm text-[#0A2540]">Cartão de Crédito</span>
+                    <span className="block font-bold text-sm text-[#0A2540]">
+                      {submitting && loadingMethod === 'card' ? 'Gerando link Cartão...' : 'Cartão de Crédito'}
+                    </span>
                     <span className="block text-xs text-slate-600 mt-0.5">
                       Em até {formatInstallmentBRL(totalPriceCents)}
                     </span>
                   </div>
                 </button>
               </div>
+
+              {checkoutError && (
+                <div
+                  role="alert"
+                  className="p-4 bg-red-50 border border-red-200 rounded-lg text-xs text-red-900 flex items-start gap-2.5"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold">Não foi possível iniciar o pagamento</p>
+                    <p className="leading-relaxed">{checkoutError}</p>
+                  </div>
+                </div>
+              )}
 
               {missingHandlePrompt && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 space-y-2">
@@ -611,7 +713,7 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
                 disabled={submitting}
                 className="w-full min-h-[48px] py-4 px-6 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] font-extrabold text-base rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 shadow-sm"
               >
-                <Lock className="w-4 h-4" />
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                 {submitting
                   ? 'Gerando ambiente seguro InfinitePay...'
                   : `Pagar ${formatCurrencyBRL(totalPriceCents)} agora (${paymentMethod === 'pix' ? 'Pix' : 'Cartão'})`}
@@ -629,7 +731,7 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
               )}
 
               <p className="text-[11px] text-slate-500 text-center">
-                Ao clicar em pagar, você será direcionado ao checkout oficial criptografado da InfinitePay e retornará automaticamente após a confirmação.
+                Ao clicar em Pix, Cartão ou no botão acima, você será direcionado ao checkout oficial criptografado da InfinitePay e retornará para /obrigado após a confirmação.
               </p>
             </section>
           </div>
@@ -662,6 +764,46 @@ export function CheckoutPage({ mode = 'course' }: CheckoutPageProps) {
                   {formatCurrencyBRL(basePriceCents)}
                 </span>
               </div>
+
+              {mode === 'course' && siblingVariants.length > 1 && course && (
+                <div className="pt-3 border-t border-slate-100 space-y-2">
+                  <span className="text-[11px] font-mono font-bold text-[#0F2C59] uppercase tracking-wider block">
+                    Modalidade / Carga Horária
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {siblingVariants.map((variant) => {
+                      const active = variant.id === course.id;
+                      const label =
+                        variant.workloadHours === 40
+                          ? `Formação (${variant.workloadHours}h)`
+                          : `Reciclagem (${variant.workloadHours}h)`;
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          onClick={() => navigate(`/checkout/${variant.slug}`)}
+                          className={`p-2.5 rounded-lg border text-left transition-colors cursor-pointer ${
+                            active
+                              ? 'border-[#0A2540] bg-[#0A2540] text-white'
+                              : 'border-slate-200 bg-[#F7F9FC] hover:border-[#0A2540] text-[#0A2540]'
+                          }`}
+                        >
+                          <span
+                            className={`block text-[11px] font-bold whitespace-nowrap ${
+                              active ? 'text-[#F5C518]' : 'text-[#0F2C59]'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                          <span className="block font-mono text-xs font-extrabold tabular-nums mt-0.5">
+                            {formatCurrencyBRL(variant.priceCents)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {activeSelectedBumps.map((b) => (
                 <div

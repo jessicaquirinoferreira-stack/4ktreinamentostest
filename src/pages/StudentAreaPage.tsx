@@ -10,14 +10,18 @@ import {
   ExternalLink,
   FileCheck2,
   FileText,
+  Image as ImageIcon,
   Layers,
   LogOut,
   PlayCircle,
   Video,
 } from 'lucide-react';
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { SafetyDocsSection } from '../components/SafetyDocsSection';
 import { useAuth } from '../context/AuthContext';
+import { getNrCertificateSpec } from '../data/certificateCatalog';
+import { db } from '../lib/firebase';
 import {
   fetchCourseBySlug,
   fetchCourseModules,
@@ -93,6 +97,7 @@ export function StudentAreaPage() {
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [examResult, setExamResult] = useState<{ score: number; passed: boolean } | null>(null);
+  const [studentCpfInput, setStudentCpfInput] = useState('');
   const [issuingCert, setIssuingCert] = useState(false);
 
   async function loadStudentData() {
@@ -157,6 +162,12 @@ export function StudentAreaPage() {
       setLoadingData(false);
     }
   }
+
+  useEffect(() => {
+    if (profile?.cpf) {
+      setStudentCpfInput((prev) => prev || profile.cpf || '');
+    }
+  }, [profile?.cpf]);
 
   useEffect(() => {
     if (user) {
@@ -326,14 +337,31 @@ export function StudentAreaPage() {
     }
   }
 
-  async function handleGenerateCertificate() {
+  async function handleGenerateCertificate(reissueFrom?: Certificate) {
     if (!user || !activeEnrollment || !activeCourse || !activeEnrollment.examPassed) return;
     setIssuingCert(true);
     try {
       const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const validationCode = `4K-${activeCourse.nrCode.replace(/[^A-Z0-9]/gi, '')}-${new Date().getFullYear()}-${rand}`;
+      const validationCode = `4K-${activeCourse.nrCode.replace(/[^A-Z0-9]/gi, '').toUpperCase()}-${new Date().getFullYear()}-${rand}`;
       const certId = `cert_${Date.now()}_${rand.toLowerCase()}`;
       const studentName = profile?.name || user.displayName || activeEnrollment.userName;
+      const cleanCpf = (studentCpfInput || reissueFrom?.studentCpf || profile?.cpf || '').trim().slice(0, 24);
+      const spec = getNrCertificateSpec(
+        activeCourse.nrCode || activeCourse.id,
+        activeCourse.title,
+        activeCourse.workloadHours
+      );
+
+      if (cleanCpf && profile && !profile.cpf) {
+        try {
+          await updateDoc(doc(db, 'users', user.uid), {
+            cpf: cleanCpf,
+            updatedAt: serverTimestamp(),
+          });
+        } catch {
+          // Best-effort profile CPF sync; certificate record carries studentCpf directly
+        }
+      }
 
       const res = await fetch('/api/certificates/generate', {
         method: 'POST',
@@ -341,6 +369,7 @@ export function StudentAreaPage() {
         body: JSON.stringify({
           validationCode,
           studentName,
+          studentCpf: cleanCpf || undefined,
           courseTitle: activeCourse.title,
           nrCode: activeCourse.nrCode,
           workloadHours: activeCourse.workloadHours,
@@ -353,6 +382,9 @@ export function StudentAreaPage() {
           templateBody: settings?.certificateTemplateBody,
           companyName: settings?.companyName,
           cnpj: settings?.cnpj,
+          companyPhone: settings?.phone,
+          companyAddress: settings?.address,
+          syllabusItems: spec.syllabus,
         }),
       });
 
@@ -364,6 +396,7 @@ export function StudentAreaPage() {
         validationCode,
         userId: user.uid,
         studentName,
+        ...(cleanCpf ? { studentCpf: cleanCpf } : {}),
         courseId: activeCourse.id,
         courseTitle: activeCourse.title,
         nrCode: activeCourse.nrCode,
@@ -386,7 +419,11 @@ export function StudentAreaPage() {
       }
 
       setActiveEnrollment((prev) => (prev ? { ...prev, certificateId: certId } : prev));
-      toast.success('Certificado emitido com sucesso! Faça o download abaixo.');
+      toast.success(
+        reissueFrom
+          ? 'Certificado atualizado no novo modelo oficial com sucesso!'
+          : 'Certificado emitido com sucesso! Faça o download abaixo.'
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao emitir certificado.');
     } finally {
@@ -518,9 +555,9 @@ export function StudentAreaPage() {
 
   // Active Course Player / Exam Workspace
   if (activeEnrollment && activeCourse) {
-    const existingCert = certificates.find(
-      (c) => c.courseId === activeCourse.id || c.id === activeEnrollment.certificateId
-    );
+    const existingCert =
+      certificates.find((c) => Boolean(activeEnrollment.certificateId) && c.id === activeEnrollment.certificateId) ||
+      certificates.find((c) => c.courseId === activeCourse.id);
     const isLessonDone = activeLesson ? activeEnrollment.completedLessonIds?.includes(activeLesson.id) : false;
 
     return (
@@ -581,42 +618,69 @@ export function StudentAreaPage() {
                   </div>
 
                   {activeEnrollment.examPassed && (
-                    <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <p className="font-bold text-emerald-900 text-sm">
-                          Aprovado com nota {activeEnrollment.bestScore}%!
-                        </p>
-                        <p className="text-xs text-emerald-800 mt-0.5">
-                          Seu certificado digital já está liberado para emissão e download.
-                        </p>
-                      </div>
-                      {existingCert ? (
-                        <div className="flex flex-wrap gap-2">
-                          <a
-                            href={existingCert.pdfUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg"
-                          >
-                            <Download className="w-4 h-4" />
-                            Baixar PDF ({existingCert.validationCode})
-                          </a>
-                          <Link
-                            to={`/validar?code=${existingCert.validationCode}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-emerald-300 text-emerald-900 text-xs font-semibold rounded-lg bg-white"
-                          >
-                            Validar
-                          </Link>
+                    <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <p className="font-bold text-emerald-900 text-sm">
+                            Aprovado com nota {activeEnrollment.bestScore}%!
+                          </p>
+                          <p className="text-xs text-emerald-800 mt-0.5">
+                            Seu certificado digital já está liberado com conteúdo programático oficial da {activeCourse.nrCode} e campo para assinatura do aluno.
+                          </p>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={issuingCert}
-                          onClick={handleGenerateCertificate}
-                          className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg cursor-pointer disabled:opacity-60"
-                        >
-                          {issuingCert ? 'Gerando PDF...' : 'Emitir Certificado PDF'}
-                        </button>
+                        {existingCert ? (
+                          <div className="flex flex-wrap gap-2">
+                            <a
+                              href={existingCert.pdfUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg"
+                            >
+                              <Download className="w-4 h-4" />
+                              Baixar PDF ({existingCert.validationCode})
+                            </a>
+                            <Link
+                              to={`/validar?code=${existingCert.validationCode}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-emerald-300 text-emerald-900 text-xs font-semibold rounded-lg bg-white"
+                            >
+                              Validar
+                            </Link>
+                            <button
+                              type="button"
+                              disabled={issuingCert}
+                              onClick={() => handleGenerateCertificate(existingCert)}
+                              className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-emerald-300 hover:bg-emerald-100 text-emerald-900 text-xs font-semibold rounded-lg bg-white cursor-pointer disabled:opacity-60"
+                            >
+                              {issuingCert ? 'Atualizando...' : 'Atualizar PDF no novo modelo'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={issuingCert}
+                            onClick={() => handleGenerateCertificate()}
+                            className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg cursor-pointer disabled:opacity-60"
+                          >
+                            {issuingCert ? 'Gerando PDF...' : 'Emitir Certificado PDF'}
+                          </button>
+                        )}
+                      </div>
+
+                      {(!existingCert || !existingCert.studentCpf) && (
+                        <div className="pt-3 border-t border-emerald-200/80 flex flex-col sm:flex-row sm:items-center gap-2">
+                          <label htmlFor="cert-cpf-input" className="text-xs font-semibold text-emerald-900 shrink-0">
+                            CPF do aluno (constará no certificado):
+                          </label>
+                          <input
+                            id="cert-cpf-input"
+                            type="text"
+                            value={studentCpfInput}
+                            onChange={(e) => setStudentCpfInput(e.target.value)}
+                            placeholder="000.000.000-00"
+                            maxLength={24}
+                            className="w-full sm:max-w-[210px] px-3 py-1.5 text-xs font-mono bg-white border border-emerald-300 rounded-lg text-[#0A2540] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                          />
+                        </div>
                       )}
                     </div>
                   )}
@@ -700,6 +764,16 @@ export function StudentAreaPage() {
                     </div>
                   )}
 
+                  {activeLesson.imageUrl && (
+                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                      <img
+                        src={activeLesson.imageUrl}
+                        alt={activeLesson.title}
+                        className="w-full max-h-[480px] object-contain mx-auto"
+                      />
+                    </div>
+                  )}
+
                   {activeLesson.pdfUrl && (
                     <div className="p-4 bg-[#F7F9FC] border border-slate-200 rounded-lg flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -713,6 +787,26 @@ export function StudentAreaPage() {
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0A2540] text-white text-xs font-semibold rounded-lg"
                       >
                         Abrir PDF
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  )}
+
+                  {activeLesson.attachmentUrl && (
+                    <div className="p-4 bg-[#F7F9FC] border border-slate-200 rounded-lg flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <Download className="w-5 h-5 text-[#0F2C59]" />
+                        <span className="text-sm font-medium text-[#0A2540]">
+                          {activeLesson.attachmentName || 'Anexo complementar da aula'}
+                        </span>
+                      </div>
+                      <a
+                        href={activeLesson.attachmentUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0A2540] text-white text-xs font-semibold rounded-lg"
+                      >
+                        Abrir anexo
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     </div>
@@ -776,6 +870,8 @@ export function StudentAreaPage() {
                               <span className="flex items-center gap-2 truncate">
                                 {lesson.type === 'video' ? (
                                   <Video className="w-3.5 h-3.5 shrink-0" />
+                                ) : lesson.type === 'image' ? (
+                                  <ImageIcon className="w-3.5 h-3.5 shrink-0" />
                                 ) : (
                                   <PlayCircle className="w-3.5 h-3.5 shrink-0" />
                                 )}
@@ -907,9 +1003,9 @@ export function StudentAreaPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {enrollments.map((enr) => {
                 const courseMeta = catalogCourses.find((c) => c.id === enr.courseId);
-                const courseCert = certificates.find(
-                  (c) => c.courseId === enr.courseId || c.id === enr.certificateId
-                );
+                const courseCert =
+                  certificates.find((c) => Boolean(enr.certificateId) && c.id === enr.certificateId) ||
+                  certificates.find((c) => c.courseId === enr.courseId);
 
                 return (
                   <div

@@ -11,15 +11,17 @@ import officialLogoImg from '../assets/images/logo_4k_treinamentos.png';
 import heroBrandedImg from '../assets/images/hero_4k_branded_1794853557660.jpg';
 import instructorBrandedImg from '../assets/images/instructor_4k_branded_1794853558864.jpg';
 import corporateBrandedImg from '../assets/images/corporate_4k_branded_1794853562586.jpg';
-import nr06CoverImg from '../assets/images/nr06_4k_branded_1794853562892.jpg';
-import nr10CoverImg from '../assets/images/nr10_4k_branded_1794918469807.jpg';
-import nr11CoverImg from '../assets/images/nr11_4k_branded_1794918469511.jpg';
-import nr12CoverImg from '../assets/images/nr12_4k_branded_1794853565420.jpg';
-import nr18CoverImg from '../assets/images/nr18_4k_branded_1794853564817.jpg';
-import nr20CoverImg from '../assets/images/nr20_4k_branded_1794918469472.jpg';
-import nr23CoverImg from '../assets/images/nr23_4k_branded_1794918470650.jpg';
-import nr33CoverImg from '../assets/images/nr33_4k_branded_1794853561553.jpg';
-import nr35CoverImg from '../assets/images/nr35_4k_branded_1794853562294.jpg';
+import nr06CoverImg from '../assets/images/nr06_epi_uniform_4k_1794994491263.jpg';
+import nr10CoverImg from '../assets/images/nr10_eletricidade_uniform_4k_1794994493510.jpg';
+import nr11CoverImg from '../assets/images/nr11_movimentacao_uniform_4k_1794994492226.jpg';
+import nr12CoverImg from '../assets/images/nr12_maquinas_fixed_1794994556546.jpg';
+import nr18CoverImg from '../assets/images/nr18_construcao_uniform_4k_1794994493738.jpg';
+import nr20CoverImg from '../assets/images/nr20_inflamaveis_fixed_1794994548105.jpg';
+import nr23CoverImg from '../assets/images/nr23_incendio_uniform_4k_1794994496198.jpg';
+import nr33Formacao40hCoverImg from '../assets/images/nr33_formacao_40h_fixed_1794994548028.jpg';
+import nr33CoverImg from '../assets/images/nr33_reciclagem_16h_uniform_4k_1794994497408.jpg';
+import nr35Formacao40hCoverImg from '../assets/images/nr35_formacao_40h_uniform_4k_1794994497663.jpg';
+import nr35CoverImg from '../assets/images/nr35_reciclagem_8h_uniform_4k_1794994498812.jpg';
 
 export const OFFICIAL_LOGO_URL = officialLogoImg;
 export const HERO_IMAGE_URL = heroBrandedImg;
@@ -32,7 +34,9 @@ export const NR12_COVER_URL = nr12CoverImg;
 export const NR18_COVER_URL = nr18CoverImg;
 export const NR20_COVER_URL = nr20CoverImg;
 export const NR23_COVER_URL = nr23CoverImg;
+export const NR33_40H_COVER_URL = nr33Formacao40hCoverImg;
 export const NR33_COVER_URL = nr33CoverImg;
+export const NR35_40H_COVER_URL = nr35Formacao40hCoverImg;
 export const NR35_COVER_URL = nr35CoverImg;
 
 export const DEFAULT_PUBLIC_SETTINGS: Omit<PublicSettings, 'updatedAt'> = {
@@ -1203,15 +1207,218 @@ export const SEED_COURSES: SeedCourseBundle[] = [
   },
   {
     course: {
+      id: 'nr-33-40h',
+      slug: 'nr-33-40h',
+      nrCode: 'NR-33 · 40h',
+      title: 'Espaços Confinados – Trabalhadores Autorizados e Vigia (40h)',
+      salesHeadline:
+        'Formação completa NR-33 (40h) para Trabalhadores Autorizados e Vigia em Espaços Confinados',
+      salesSubheadline:
+        'Capacitação inicial obrigatória de 40h cobrindo identificação de espaços confinados, medição multigás (O2, LEL, CO, H2S), PET, bloqueio LOTO e procedimentos de resgate com emissão imediata de certificado.',
+      promoTag: 'Formação Completa 40h · Trabalhadores Autorizados e Vigia',
+      originalPriceCents: 31900,
+      priceCents: 21900,
+      enrolledCount: 1420,
+      ratingAverage: 4.9,
+      ratingCount: 236,
+      guaranteeDays: 7,
+      shortDescription:
+        'Formação inicial de 40h para trabalhadores autorizados e vigia em espaço confinado: gases, PET, ventilação e salvamento.',
+      fullDescription:
+        'Capacitação teórica completa de 40 horas para Trabalhadores Autorizados e Vigias em Espaços Confinados (NR-33). Abrange reconhecimento e cadastro de espaços confinados, avaliação de riscos atmosféricos (deficiência/enriquecimento de O2, gases inflamáveis LEL, CO e H2S), emissão e encerramento da Permissão de Entrada e Trabalho (PET), bloqueio e etiquetagem (LOTO), ventilação mecânica, deveres do vigia e noções de emergência e resgate.',
+      workloadHours: 40,
+      certificateValidityMonths: 12,
+      targetAudience:
+        'Trabalhadores autorizados, vigias, operadores industriais, equipe de manutenção de tanques, silos, galerias e profissionais que necessitam da formação inicial de 40h na NR-33.',
+      notForAudience: [
+        'Quem já possui formação NR-33 ativa e precisa apenas da Reciclagem periódica de 16h',
+        'Quem procura conteúdo superficial sem avaliação formal de aproveitamento',
+      ],
+      includedBonuses: [
+        'Modelo comentado de Permissão de Entrada e Trabalho (PET) conforme NR-33',
+        'Guia de Limites Seguros de Detector Multigás (O2, LEL, CO e H2S)',
+        'Checklist completo de atribuições do Vigia e do Trabalhador Autorizado',
+      ],
+      learningOutcomes: [
+        'Identificar, sinalizar e isolar espaços confinados conforme a NR-33',
+        'Interpretar leituras de detector multigás em topo, meio e fundo',
+        'Aplicar corretamente a Permissão de Entrada e Trabalho (PET) e bloqueio LOTO',
+        'Atuar com segurança como Trabalhador Autorizado ou Vigia em situações normais e de emergência',
+      ],
+      faq: [
+        {
+          question: 'Qual a diferença entre a NR-33 de 40h e a Reciclagem de 16h?',
+          answer:
+            'A carga horária de 40h é voltada à formação completa/aprofundada para trabalhadores autorizados e vigia em espaço confinado, enquanto a de 16h atende trabalhadores autorizados e vigias na modalidade de reciclagem periódica.',
+        },
+        {
+          question: 'O certificado menciona Trabalhadores Autorizados e Vigia em Espaço Confinado?',
+          answer:
+            'Sim. O texto oficial do certificado gerado em PDF informa explicitamente "para trabalhadores autorizados e vigia em espaço confinado" com carga horária de 40 horas.',
+        },
+      ],
+      coverImageUrl: NR33_40H_COVER_URL,
+      bannerImageUrl: NR33_40H_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 8,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-33-40h-m1',
+        courseId: 'nr-33-40h',
+        title: 'Módulo 1 · Legislação NR-33, Cadastro e Papéis Operacionais',
+        description: 'Responsabilidades do empregador, Supervisor, Vigia e Trabalhador Autorizado.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr33-40h-l1',
+            title: 'Definição, Reconhecimento e Gestão de Espaços Confinados',
+            type: 'text',
+            durationMinutes: 90,
+            order: 1,
+            content:
+              'Espaço confinado é qualquer área não projetada para ocupação humana contínua, com meios limitados de entrada e saída e ventilação insuficiente para remover contaminantes ou manter níveis seguros de oxigênio.\n\nNa formação de 40h, estudamos o inventário completo de espaços confinados (tanques, silos, poços de visita, caldeiras, galerias e dutos), sinalização obrigatória e definição formal das responsabilidades de Trabalhadores Autorizados e Vigias.',
+          },
+          {
+            id: 'nr33-40h-l2',
+            title: 'Atribuições do Trabalhador Autorizado e do Vigia',
+            type: 'text',
+            durationMinutes: 90,
+            order: 2,
+            content:
+              'O Trabalhador Autorizado deve conhecer os riscos do ambiente, utilizar corretamente os EPIs e manter comunicação constante com o Vigia.\n\nO Vigia permanece do lado externo durante toda a operação, controla o acesso, mantém contagem exata de pessoas no interior, monitora sinais de alarme e ordena evacuação imediata em qualquer situação anormal — nunca entrando para tentar resgate sem substituição e equipe de salvamento.',
+          },
+        ],
+      },
+      {
+        id: 'nr-33-40h-m2',
+        courseId: 'nr-33-40h',
+        title: 'Módulo 2 · Atmosferas Perigosas, Multigás e PET',
+        description: 'Limites de O2, inflamáveis, gases tóxicos, ventilação e emissão da PET.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr33-40h-l3',
+            title: 'Monitoramento Atmosférico (O2, LEL, CO, H2S) e Ventilação',
+            type: 'text',
+            durationMinutes: 120,
+            order: 1,
+            content:
+              'Os testes atmosféricos devem ocorrer em topo, meio e fundo antes e durante a permanência:\n• Oxigênio (O2): entre 19,5% e 23,0%.\n• Inflamáveis (LIE/LEL): abaixo de 10% do limite inferior de explosividade.\n• Gases tóxicos (CO e H2S): abaixo dos limites de tolerância.\n\nA ventilação mecânica (insuflação/exaustão) deve garantir renovação contínua do ar com ar atmosférico limpo — jamais utilizando oxigênio puro.',
+          },
+          {
+            id: 'nr33-40h-l4',
+            title: 'Permissão de Entrada e Trabalho (PET) e Bloqueio LOTO',
+            type: 'text',
+            durationMinutes: 90,
+            order: 2,
+            content:
+              'Nenhuma entrada ocorre sem PET emitida e assinada para aquela jornada específica. Antes da abertura de linhas ou ingresso, aplicam-se bloqueios mecânicos, elétricos, pneumáticos e hidráulicos (LOTO) com cadeado e etiqueta individual.',
+          },
+        ],
+      },
+      {
+        id: 'nr-33-40h-m3',
+        courseId: 'nr-33-40h',
+        title: 'Módulo 3 · Resgate, Emergências e Primeiros Socorros',
+        description: 'Plano de salvamento, içamento por tripé e primeiros socorros em espaços confinados.',
+        order: 3,
+        lessons: [
+          {
+            id: 'nr33-40h-l5',
+            title: 'Sistemas de Içamento, Plano de Salvamento e Primeiros Socorros',
+            type: 'text',
+            durationMinutes: 90,
+            order: 1,
+            content:
+              'Em emergências, a equipe utiliza sistemas de resgate sem ingresso quando possível (tripé com guincho resgatador acoplado ao cinturão tipo paraquedista) ou equipe equipada com EPR autônomo. A capacitação inclui acionamento imediato, controle de cena e suporte básico à vida.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr33-40h-q1',
+        courseId: 'nr-33-40h',
+        order: 1,
+        prompt: 'Qual a faixa segura de Oxigênio (O2) exigida antes da entrada em espaço confinado sem EPR autônomo?',
+        options: [
+          'Entre 15,0% e 18,5%.',
+          'Entre 19,5% e 23,0%.',
+          'Entre 24,0% e 28,0%.',
+          'Abaixo de 19,0%.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr33-40h-q2',
+        courseId: 'nr-33-40h',
+        order: 2,
+        prompt: 'Qual é o papel exclusivo e insubstituível do Vigia durante a execução de um serviço em espaço confinado?',
+        options: [
+          'Entrar no tanque para ajudar o trabalhador quando o espaço for amplo.',
+          'Permanecer no exterior mantendo contagem e comunicação contínua com os trabalhadores e acionar resgate se necessário.',
+          'Desligar o detector multigás após os primeiros 5 minutos.',
+          'Alterar a PET sem comunicar o Supervisor de Entrada.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr33-40h-q3',
+        courseId: 'nr-33-40h',
+        order: 3,
+        prompt: 'Por que a leitura de gases deve abranger topo, meio e fundo do espaço confinado?',
+        options: [
+          'Porque gases diferentes possuem densidades distintas em relação ao ar e podem estratificar em camadas.',
+          'Apenas para registrar três horários diferentes no formulário.',
+          'Porque o oxigênio não existe no fundo de nenhum tanque.',
+          'Para testar se a mangueira do exaustor alcança o piso.',
+        ],
+        correctIndex: 0,
+      },
+      {
+        id: 'nr33-40h-q4',
+        courseId: 'nr-33-40h',
+        order: 4,
+        prompt: 'Qual é a validade da Permissão de Entrada e Trabalho (PET) segundo a NR-33?',
+        options: [
+          'Válida por 30 dias corridos.',
+          'Válida para uma única entrada e deve ser encerrada ao término da atividade.',
+          'Válida por 12 meses para toda a planta.',
+          'Opcional quando o trabalho durar menos de 1 hora.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr33-40h-q5',
+        courseId: 'nr-33-40h',
+        order: 5,
+        prompt: 'Antes de ingressar em tanque com agitador elétrico ou tubulação de vapor, o que deve ser feito?',
+        options: [
+          'Apenas avisar verbalmente a portaria.',
+          'Realizar bloqueio, isolamento e etiquetagem (LOTO) de todas as fontes de energia e fluidos.',
+          'Injetar oxigênio puro para resfriar o ambiente.',
+          'Entrar sem cinturão para facilitar a passagem pela boca de visita.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
       id: 'nr-33',
       slug: 'nr-33',
-      nrCode: 'NR-33',
-      title: 'Segurança e Saúde em Espaços Confinados',
+      nrCode: 'NR-33 · 16h',
+      title: 'Espaços Confinados – Reciclagem Autorizado e Vigia (16h)',
       salesHeadline:
-        'Domine os requisitos da NR-33 (16h) e conquiste sua certificação de Trabalhador Autorizado e Vigia ainda hoje',
+        'Renove sua NR-33 Reciclagem (16h) para Trabalhadores Autorizados e Vigia em Espaço Confinado ainda hoje',
       salesSubheadline:
-        'Aprenda monitoramento atmosférico (O2, LEL, CO, H2S), emissão de PET, bloqueio LOTO e plano de salvamento em uma plataforma objetiva com emissão imediata de certificado válido.',
-      promoTag: 'Condição promocional · Reciclagem e Formação 16h',
+        'Atualização periódica de 16h com revisão de monitoramento atmosférico (O2, LEL, CO, H2S), PET, bloqueio LOTO e plano de salvamento, com emissão imediata de certificado válido.',
+      promoTag: 'Reciclagem 16h · Trabalhadores Autorizados e Vigia',
       originalPriceCents: 22900,
       priceCents: 14900,
       enrolledCount: 1640,
@@ -1219,17 +1426,16 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       ratingCount: 284,
       guaranteeDays: 7,
       shortDescription:
-        'Capacitação para trabalhadores autorizados e vigias em espaços confinados: avaliação atmosférica, PET, ventilação e resgate.',
+        'Reciclagem de 16h para trabalhadores autorizados e vigias em espaço confinado: avaliação atmosférica, PET, ventilação e resgate.',
       fullDescription:
-        'A NR-33 trata da gestão de segurança e saúde nos trabalhos em espaços confinados — áreas não projetadas para ocupação humana contínua, com meios limitados de entrada e saída e ventilação insuficiente. Este curso abrange reconhecimento de riscos atmosféricos (O2, inflamáveis, CO e H2S), Permissão de Entrada e Trabalho (PET), bloqueio e etiquetagem (LOTO), atuação do vigia e procedimentos de emergência.',
+        'A NR-33 exige capacitação periódica (reciclagem) para trabalhadores autorizados e vigias que atuam em espaços confinados. Este treinamento de 16 horas revisa reconhecimento de riscos atmosféricos (O2, inflamáveis, CO e H2S), Permissão de Entrada e Trabalho (PET), bloqueio e etiquetagem (LOTO), deveres do vigia e procedimentos de emergência.',
       workloadHours: 16,
       certificateValidityMonths: 12,
       targetAudience:
-        'Operadores industriais, equipes de manutenção de tanques, silos, galerias, reservatórios, técnicos de segurança e vigias de espaço confinado.',
+        'Operadores industriais, trabalhadores autorizados e vigias de espaço confinado que precisam realizar a reciclagem periódica de 16h da NR-33.',
       notForAudience: [
-        'Profissionais que não passarão pela avaliação formal exigida pela NR-33',
-        'Atividades que demandem certificação específica de Supervisor de Entrada (40h)',
-        'Quem procura conteúdo superficial sem foco em gases tóxicos e procedimentos de PET',
+        'Quem precisa da formação inicial/completa de 40h (escolha a opção NR-33 40h)',
+        'Quem procura conteúdo sem avaliação formal de aproveitamento',
       ],
       includedBonuses: [
         'Modelo comentado de Permissão de Entrada e Trabalho (PET) conforme NR-33',
@@ -1245,24 +1451,19 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       ],
       faq: [
         {
-          question: 'Qual a validade do certificado da NR-33?',
+          question: 'Qual a validade do certificado da NR-33 Reciclagem 16h?',
           answer:
             'A reciclagem da NR-33 deve ser realizada periodicamente a cada 12 meses (1 ano), conforme exigência da norma.',
         },
         {
-          question: 'Este curso atende trabalhadores autorizados e vigias?',
+          question: 'O certificado informa que é para trabalhadores autorizados e vigia?',
           answer:
-            'Sim. O conteúdo programático contempla todas as diretrizes teóricas para Trabalhadores Autorizados e Vigias (16 horas).',
+            'Sim. O certificado impresso em PDF informa explicitamente "para trabalhadores autorizados e vigia em espaço confinado" na modalidade Reciclagem (16 horas).',
         },
         {
-          question: 'Como funciona a validação do certificado pelo SESMT da contratante?',
+          question: 'Posso escolher a NR-33 de 40h em vez da de 16h?',
           answer:
-            'Cada certificado possui um código único impresso no cabeçalho. Qualquer técnico de segurança ou auditor pode confirmar a autenticidade instantaneamente na página /validar.',
-        },
-        {
-          question: 'Posso parcelar no cartão ou pagar no Pix?',
-          answer:
-            'Sim. Aceitamos Pix com liberação imediata e cartão de crédito em até 12x via InfinitePay Checkout Integrado.',
+            'Sim! Na página do curso ou no checkout você pode alternar entre a Formação de 40h e a Reciclagem de 16h conforme a exigência da sua empresa.',
         },
       ],
       coverImageUrl: NR33_COVER_URL,
@@ -1271,7 +1472,7 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       instructorRole: 'Engenheiro de Segurança do Trabalho',
       instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
       status: 'published',
-      displayOrder: 8,
+      displayOrder: 9,
       passingScore: 70,
     },
     modules: [
@@ -1378,15 +1579,209 @@ export const SEED_COURSES: SeedCourseBundle[] = [
   },
   {
     course: {
+      id: 'nr-35-40h',
+      slug: 'nr-35-40h',
+      nrCode: 'NR-35 · 40h',
+      title: 'Trabalho em Altura – Formação Completa (40h)',
+      salesHeadline:
+        'Formação completa NR-35 (40h) com certificação avançada para obras, plantas industriais e paradas de manutenção',
+      salesSubheadline:
+        'Treinamento teórico aprofundado de 40h conforme NR-35, cobrindo Análise de Risco (AR), Permissão de Trabalho, sistemas de ancoragem, linhas de vida, cálculo de ZLQ e resgate em altura.',
+      promoTag: 'Formação Completa 40h · Certificado válido em todo o Brasil',
+      originalPriceCents: 27900,
+      priceCents: 18900,
+      enrolledCount: 1960,
+      ratingAverage: 4.9,
+      ratingCount: 310,
+      guaranteeDays: 7,
+      shortDescription:
+        'Capacitação completa de 40h em Trabalho em Altura: planejamento, AR/PT, ancoragens, linhas de vida, cálculo de ZLQ e resgate.',
+      fullDescription:
+        'O curso completo de 40 horas da NR-35 é indicado para profissionais que precisam de carga horária estendida em Trabalho em Altura para contratos industriais, energia, telecomunicações, construção pesada e supervisão de frentes acima de 2 metros. Abrange legislação NR-35 e NR-01, condições impeditivas, AR e PT, seleção e inspeção de SPIQ/EPC, engenharia básica de pontos de ancoragem, cálculo de Fator de Queda e Zona Livre de Queda (ZLQ), suspensão inerte e técnicas de salvamento.',
+      workloadHours: 40,
+      certificateValidityMonths: 24,
+      targetAudience:
+        'Montadores industriais, técnicos de energia eólica/solar, eletricistas de linha viva/torre, trabalhadores de construção pesada e líderes de obra que necessitam da NR-35 de 40 horas.',
+      notForAudience: [
+        'Quem já possui formação NR-35 e precisa apenas da Reciclagem de 8h',
+        'Quem busca certificado sem passar pela avaliação formal de aproveitamento',
+      ],
+      includedBonuses: [
+        'Checklist completo de Inspeção Prévia de Cinturão, Talabarte, Trava-Quedas e Ancoragens',
+        'Modelos prontos de Análise de Risco (AR) e Permissão de Trabalho (PT)',
+        'Planilha de cálculo rápido de Zona Livre de Queda (ZLQ) e Fator de Queda',
+      ],
+      learningOutcomes: [
+        'Planejar e supervisionar frentes de trabalho acima de 2,00m com AR e PT completas',
+        'Dimensionar sistemas de ancoragem, linhas de vida rígidas/flexíveis e ZLQ',
+        'Especificar e inspecionar todo o Sistema de Proteção Individual contra Quedas (SPIQ)',
+        'Conduzir protocolos de resgate e prevenção da síndrome da suspensão inerte',
+      ],
+      faq: [
+        {
+          question: 'Quando escolher a NR-35 de 40h em vez da Reciclagem de 8h?',
+          answer:
+            'Escolha a de 40h quando a contratante, planta industrial ou edital exigir formação ampliada (40h) para trabalho em altura. Caso já possua NR-35 e queira apenas a carga horária básica ou reciclagem bienal, utilize a opção NR-35 de 8h.',
+        },
+        {
+          question: 'A carga horária de 40 horas vem especificada no certificado PDF?',
+          answer:
+            'Sim. O certificado PDF exibe "NR-35 | TRABALHO EM ALTURA – FORMAÇÃO COMPLETA (40H)", carga horária de 40 horas, conteúdo programático completo e código de validação.',
+        },
+      ],
+      coverImageUrl: NR35_40H_COVER_URL,
+      bannerImageUrl: NR35_40H_COVER_URL,
+      instructorName: 'Eng. Carlos Eduardo Mendes',
+      instructorRole: 'Engenheiro de Segurança do Trabalho',
+      instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
+      status: 'published',
+      displayOrder: 10,
+      passingScore: 70,
+    },
+    modules: [
+      {
+        id: 'nr-35-40h-m1',
+        courseId: 'nr-35-40h',
+        title: 'Módulo 1 · Gestão, Planejamento, AR e Permissão de Trabalho',
+        description: 'Fundamentos da NR-35, responsabilidades, condições impeditivas, AR e PT.',
+        order: 1,
+        lessons: [
+          {
+            id: 'nr35-40h-l1',
+            title: 'Escopo da NR-35, Direito de Recusa e Condições Impeditivas',
+            type: 'text',
+            durationMinutes: 90,
+            order: 1,
+            content:
+              'Trabalho em altura compreende toda atividade executada acima de 2,00 m do nível inferior onde haja risco de queda.\n\nNa formação de 40h aprofundamos o gerenciamento das condições impeditivas (ventos excessivos, chuva, descargas atmosféricas, falta de ponto de ancoragem certificado e ausência de aptidão clínica no ASO) e a aplicação do Direito de Recusa pelo trabalhador.',
+          },
+          {
+            id: 'nr35-40h-l2',
+            title: 'Elaboração Detalhada de AR e Permissão de Trabalho (PT)',
+            type: 'text',
+            durationMinutes: 90,
+            order: 2,
+            content:
+              'A Análise de Risco (AR) avalia entorno, riscos de queda de materiais, redes energizadas próximas e sistemas de proteção coletiva. Para atividades não rotineiras, emite-se Permissão de Trabalho (PT) com validade restrita à jornada e à equipe envolvida.',
+          },
+        ],
+      },
+      {
+        id: 'nr-35-40h-m2',
+        courseId: 'nr-35-40h',
+        title: 'Módulo 2 · SPIQ, Ancoragens, Linhas de Vida e ZLQ',
+        description: 'Sistemas de proteção coletiva, ancoragens, Fator de Queda e cálculo da ZLQ.',
+        order: 2,
+        lessons: [
+          {
+            id: 'nr35-40h-l3',
+            title: 'Pontos de Ancoragem, Linhas de Vida e Fator de Queda',
+            type: 'text',
+            durationMinutes: 120,
+            order: 1,
+            content:
+              'Todo Sistema de Proteção Individual contra Quedas (SPIQ) depende de ancoragem dimensionada com resistência mínima de 15 kN para um trabalhador, elemento de ligação com absorvedor de energia e cinturão tipo paraquedista.\n\nEstudamos o cálculo exato da Zona Livre de Queda (ZLQ) considerando comprimento do talabarte, abertura do absorvedor (até 1,75 m), altura do trabalhador e margem mínima de segurança de 1 metro.',
+          },
+        ],
+      },
+      {
+        id: 'nr-35-40h-m3',
+        courseId: 'nr-35-40h',
+        title: 'Módulo 3 · Emergência, Suspensão Inerte e Resgate Técnico',
+        description: 'Plano de emergência em altura, fita anti-trauma e procedimentos de salvamento.',
+        order: 3,
+        lessons: [
+          {
+            id: 'nr35-40h-l4',
+            title: 'Prevenção da Suspensão Inerte e Protocolos de Resgate',
+            type: 'text',
+            durationMinutes: 90,
+            order: 1,
+            content:
+              'Trabalhadores retidos pelo cinturão após queda devem acionar imediatamente a equipe de resgate e utilizar fita anti-trauma para aliviar a compressão arterial femoral até a descida controlada e atendimento médico em posição semi-sentada.',
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: 'nr35-40h-q1',
+        courseId: 'nr-35-40h',
+        order: 1,
+        prompt: 'A partir de qual desnível em relação ao nível inferior a NR-35 considera Trabalho em Altura?',
+        options: [
+          'Acima de 1,20 metro.',
+          'Acima de 2,00 metros com risco de queda.',
+          'Apenas acima de 3,50 metros.',
+          'Somente em coberturas sem platibanda acima de 5 metros.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr35-40h-q2',
+        courseId: 'nr-35-40h',
+        order: 2,
+        prompt: 'Qual a resistência estática mínima recomendada para um ponto de ancoragem individual em SPIQ de retenção de queda?',
+        options: [
+          '3 kN.',
+          '15 kN (aprox. 1.500 kgf).',
+          '5 kN sem absorvedor.',
+          'Qualquer tubulação de PVC próxima.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr35-40h-q3',
+        courseId: 'nr-35-40h',
+        order: 3,
+        prompt: 'Por que o absorvedor de energia é obrigatório em talabartes de retenção de queda com Fator de Queda 1 ou 2?',
+        options: [
+          'Para aumentar a velocidade da queda.',
+          'Para dissipar a energia cinética e limitar a força de impacto transmitida ao corpo do trabalhador (máx. 6 kN).',
+          'Para substituir o cinturão tipo paraquedista.',
+          'Apenas por exigência estética do fabricante.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr35-40h-q4',
+        courseId: 'nr-35-40h',
+        order: 4,
+        prompt: 'O que é a Síndrome da Suspensão Inerte?',
+        options: [
+          'Cansaço leve após subir escadas.',
+          'Comprometimento circulatório grave causado pela imobilidade prolongada suspenso nas fitas do cinturão após queda.',
+          'Excesso de vento durante o içamento de cargas.',
+          'Falta de inspeção visual no capacete.',
+        ],
+        correctIndex: 1,
+      },
+      {
+        id: 'nr35-40h-q5',
+        courseId: 'nr-35-40h',
+        order: 5,
+        prompt: 'Antes de iniciar qualquer trabalho não rotineiro acima de 2 metros, quais documentos são obrigatórios?',
+        options: [
+          'Apenas recibo de compra do EPI.',
+          'Análise de Risco (AR) e Permissão de Trabalho (PT).',
+          'Contrato social da contratante.',
+          'Nenhum documento quando houver escada portátil.',
+        ],
+        correctIndex: 1,
+      },
+    ],
+  },
+  {
+    course: {
       id: 'nr-35',
       slug: 'nr-35',
-      nrCode: 'NR-35',
-      title: 'Trabalho em Altura',
+      nrCode: 'NR-35 · 8h',
+      title: 'Trabalho em Altura – Reciclagem (8h)',
       salesHeadline:
-        'Emita hoje o seu Certificado NR-35 válido em todo o Brasil e entre em obra sem barreiras na portaria',
+        'Emita hoje sua NR-35 Reciclagem (8h) válida em todo o Brasil e entre em obra sem barreiras na portaria',
       salesSubheadline:
-        'Treinamento teórico completo (8h) conforme a NR-35 e Portaria MTE, com acesso imediato após o Pix, prova formal objetiva e certificado em PDF assinado por Engenheiro de Segurança do Trabalho.',
-      promoTag: 'Mais procurado · Acesso imediato após Pix',
+        'Treinamento teórico de reciclagem (8h) conforme a NR-35 e Portaria MTE, com acesso imediato após o Pix, prova formal objetiva e certificado em PDF assinado por Engenheiro de Segurança do Trabalho.',
+      promoTag: 'Reciclagem 8h · Mais procurado com acesso imediato após Pix',
       originalPriceCents: 18900,
       priceCents: 11900,
       enrolledCount: 2480,
@@ -1394,16 +1789,16 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       ratingCount: 418,
       guaranteeDays: 7,
       shortDescription:
-        'Requisitos mínimos de proteção para planejamento, organização e execução de atividades acima de 2 metros com risco de queda.',
+        'Reciclagem de 8h para planejamento, organização e execução segura de atividades acima de 2 metros com risco de queda.',
       fullDescription:
-        'O treinamento de NR-35 capacita profissionais que atuam acima de 2,00 metros do nível inferior, onde haja risco de queda. O conteúdo cobre Análise de Risco (AR), Permissão de Trabalho (PT), seleção e inspeção de EPIs contra quedas, sistemas de ancoragem, fator de queda, zona livre de queda e noções de resgate e primeiros socorros conforme atualização vigente do Ministério do Trabalho e Emprego.',
+        'O treinamento de reciclagem da NR-35 (8 horas) atualiza profissionais que atuam acima de 2,00 metros do nível inferior, onde haja risco de queda. O conteúdo cobre Análise de Risco (AR), Permissão de Trabalho (PT), seleção e inspeção de EPIs contra quedas, sistemas de ancoragem, fator de queda, zona livre de queda e noções de resgate e primeiros socorros conforme atualização vigente do Ministério do Trabalho e Emprego.',
       workloadHours: 8,
       certificateValidityMonths: 24,
       targetAudience:
-        'Trabalhadores da construção civil, manutenção industrial, energia solar, telecomunicações, pintores prediais, eletricistas e técnicos de segurança que precisam comprovar capacitação NR-35.',
+        'Trabalhadores da construção civil, manutenção industrial, energia solar, telecomunicações, pintores prediais e eletricistas que precisam da NR-35 de 8h (reciclagem/atualização).',
       notForAudience: [
+        'Quem precisa da carga horária estendida de 40h (selecione a opção NR-35 40h)',
         'Quem busca apenas um certificado impresso sem realizar estudo nem avaliação formal de aproveitamento',
-        'Atividades que exigem exclusivamente parte prática presencial em campo (que deve ser complementada na empresa quando aplicável)',
         'Menores de 18 anos ou profissionais sem aptidão médica (ASO para trabalho em altura)',
       ],
       includedBonuses: [
@@ -1419,6 +1814,11 @@ export const SEED_COURSES: SeedCourseBundle[] = [
         'Aplicar procedimentos de emergência, suspensão inerte e resgate em altura',
       ],
       faq: [
+        {
+          question: 'Posso escolher entre a NR-35 de 40h e a de 8h (Reciclagem)?',
+          answer:
+            'Sim! Disponibilizamos tanto a Formação Completa de 40h quanto a Reciclagem de 8h, cada uma com seu valor específico e carga horária impressa corretamente no certificado.',
+        },
         {
           question: 'O certificado de NR-35 online é aceito em empresas, portarias e fiscalizações?',
           answer:
@@ -1439,11 +1839,6 @@ export const SEED_COURSES: SeedCourseBundle[] = [
           answer:
             'A reciclagem periódica da NR-35 deve ocorrer a cada 2 anos (24 meses), ou sempre que houver mudança nos procedimentos ou retorno de afastamento superior a 90 dias.',
         },
-        {
-          question: 'Tenho garantia caso não goste do treinamento?',
-          answer:
-            'Sim. Você conta com 7 dias corridos de garantia incondicional a partir da compra, conforme o Código de Defesa do Consumidor.',
-        },
       ],
       coverImageUrl: NR35_COVER_URL,
       bannerImageUrl: NR35_COVER_URL,
@@ -1451,7 +1846,7 @@ export const SEED_COURSES: SeedCourseBundle[] = [
       instructorRole: 'Engenheiro de Segurança do Trabalho',
       instructorRegistry: 'CREA-SP 5069821470 · MTE 0041289',
       status: 'published',
-      displayOrder: 9,
+      displayOrder: 11,
       passingScore: 70,
     },
     modules: [
@@ -1782,3 +2177,10 @@ export function formatInstallmentBRL(cents: number, installments = 12): string {
   const perMonth = Math.round(cents / installments);
   return `${installments}x de ${formatCurrencyBRL(perMonth)}`;
 }
+
+export function getNrFamilyKey(courseIdOrNr?: string): string {
+  const raw = (courseIdOrNr || '').toLowerCase();
+  const match = raw.match(/nr[-\s]?(\d{2})/);
+  return match ? `nr-${match[1]}` : raw;
+}
+

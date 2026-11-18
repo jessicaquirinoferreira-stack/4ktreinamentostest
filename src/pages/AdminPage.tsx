@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   CreditCard,
   FileCheck2,
+  Image as ImageIcon,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -16,11 +17,13 @@ import {
   Trash2,
   Upload,
   Users,
+  X,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { getNrCertificateSpec } from '../data/certificateCatalog';
 import { DEFAULT_PUBLIC_SETTINGS, formatCurrencyBRL, OFFICIAL_LOGO_URL } from '../data/seedCourses';
 import { db } from '../lib/firebase';
 import {
@@ -106,11 +109,14 @@ export function AdminPage() {
   const [settings, setSettings] = useState<PublicSettings>({ ...DEFAULT_PUBLIC_SETTINGS, updatedAt: null });
   const [infinitePayHandle, setInfinitePayHandle] = useState('');
   const [blobConfigured, setBlobConfigured] = useState(false);
+  const [blobStorageMode, setBlobStorageMode] = useState<'vercel-blob' | 'local-preview' | 'missing-token'>('local-preview');
 
   // Course Editor State
   const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
   const [isNewCourse, setIsNewCourse] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [coverUploadProgress, setCoverUploadProgress] = useState(0);
   const [outcomesText, setOutcomesText] = useState('');
   const [bonusesText, setBonusesText] = useState('');
   const [notForText, setNotForText] = useState('');
@@ -130,11 +136,14 @@ export function AdminPage() {
   const [newModTitle, setNewModTitle] = useState('');
   const [newLessonModId, setNewLessonModId] = useState('');
   const [newLessonTitle, setNewLessonTitle] = useState('');
-  const [newLessonType, setNewLessonType] = useState<'text' | 'video' | 'pdf'>('text');
+  const [newLessonType, setNewLessonType] = useState<'text' | 'video' | 'pdf' | 'image'>('text');
   const [newLessonDuration, setNewLessonDuration] = useState('30');
   const [newLessonContent, setNewLessonContent] = useState('');
   const [newLessonMediaUrl, setNewLessonMediaUrl] = useState('');
+  const [newLessonAttachmentUrl, setNewLessonAttachmentUrl] = useState('');
+  const [newLessonAttachmentName, setNewLessonAttachmentName] = useState('');
   const [uploadingLessonMedia, setUploadingLessonMedia] = useState(false);
+  const [lessonUploadProgress, setLessonUploadProgress] = useState(0);
 
   // New Question state
   const [qPrompt, setQPrompt] = useState('');
@@ -160,6 +169,9 @@ export function AdminPage() {
       setTestimonials(testList);
       setSettings(pubSet);
       setBlobConfigured(Boolean(blobRes?.vercelBlobConfigured));
+      if (blobRes?.storageMode) {
+        setBlobStorageMode(blobRes.storageMode);
+      }
       if (blobRes?.infinitePayHandlePreview) {
         setInfinitePayHandle(blobRes.infinitePayHandlePreview);
       }
@@ -235,7 +247,7 @@ export function AdminPage() {
       toast.success(
         count > 0
           ? `${count} cursos NR sincronizados/atualizados no Firestore!`
-          : 'Todos os 9 cursos NR já estão sincronizados no Firestore.'
+          : 'Todos os cursos NR já estão sincronizados no Firestore.'
       );
       await loadAllAdminData();
     } catch (err) {
@@ -243,16 +255,34 @@ export function AdminPage() {
     }
   }
 
-  async function handleCoverUpload(file: File) {
-    setUploadingCover(true);
+  async function handleCoverUpload(file: File, field: 'cover' | 'banner' = 'cover') {
+    if (field === 'cover') setUploadingCover(true);
+    else setUploadingBanner(true);
+    setCoverUploadProgress(0);
     try {
-      const res = await uploadFileToVercelBlob(file, 'courses');
-      setEditingCourse((prev) => (prev ? { ...prev, coverImageUrl: res.url, bannerImageUrl: res.url } : prev));
-      toast.success(`Imagem enviada (${res.storageProvider === 'vercel-blob' ? 'Vercel Blob' : 'Preview Local'}).`);
+      const res = await uploadFileToVercelBlob(file, 'courses', setCoverUploadProgress);
+      setEditingCourse((prev) =>
+        prev
+          ? field === 'cover'
+            ? {
+                ...prev,
+                coverImageUrl: res.url,
+                bannerImageUrl: prev.bannerImageUrl || res.url,
+              }
+            : { ...prev, bannerImageUrl: res.url }
+          : prev
+      );
+      toast.success(
+        `${field === 'cover' ? 'Capa' : 'Banner'} enviado via ${
+          res.storageProvider === 'vercel-blob' ? 'Vercel Blob Storage' : 'Preview Local'
+        }.`
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro no upload.');
+      toast.error(err instanceof Error ? err.message : 'Erro no upload da imagem.');
     } finally {
       setUploadingCover(false);
+      setUploadingBanner(false);
+      setCoverUploadProgress(0);
     }
   }
 
@@ -419,16 +449,28 @@ export function AdminPage() {
     }
   }
 
-  async function handleLessonMediaUpload(file: File) {
+  async function handleLessonMediaUpload(file: File, target: 'primary' | 'attachment' = 'primary') {
     setUploadingLessonMedia(true);
+    setLessonUploadProgress(0);
     try {
-      const res = await uploadFileToVercelBlob(file, 'lessons');
-      setNewLessonMediaUrl(res.url);
-      toast.success(`Arquivo enviado via ${res.storageProvider === 'vercel-blob' ? 'Vercel Blob' : 'Preview Local'}.`);
+      const folder = target === 'attachment' ? 'attachments' : 'lessons';
+      const res = await uploadFileToVercelBlob(file, folder, setLessonUploadProgress);
+      if (target === 'attachment') {
+        setNewLessonAttachmentUrl(res.url);
+        setNewLessonAttachmentName(file.name);
+      } else {
+        setNewLessonMediaUrl(res.url);
+      }
+      toast.success(
+        `Arquivo enviado via ${
+          res.storageProvider === 'vercel-blob' ? 'Vercel Blob Storage' : 'Preview Local'
+        }.`
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro no upload.');
+      toast.error(err instanceof Error ? err.message : 'Erro no upload do arquivo.');
     } finally {
       setUploadingLessonMedia(false);
+      setLessonUploadProgress(0);
     }
   }
 
@@ -447,6 +489,13 @@ export function AdminPage() {
       content: newLessonContent.trim() || 'Conteúdo da aula.',
       ...(newLessonType === 'video' && newLessonMediaUrl ? { videoUrl: newLessonMediaUrl } : {}),
       ...(newLessonType === 'pdf' && newLessonMediaUrl ? { pdfUrl: newLessonMediaUrl } : {}),
+      ...(newLessonType === 'image' && newLessonMediaUrl ? { imageUrl: newLessonMediaUrl } : {}),
+      ...(newLessonAttachmentUrl
+        ? {
+            attachmentUrl: newLessonAttachmentUrl,
+            attachmentName: newLessonAttachmentName || 'Material anexo',
+          }
+        : {}),
       order: targetMod.lessons.length + 1,
     };
 
@@ -458,6 +507,8 @@ export function AdminPage() {
       setNewLessonTitle('');
       setNewLessonContent('');
       setNewLessonMediaUrl('');
+      setNewLessonAttachmentUrl('');
+      setNewLessonAttachmentName('');
       const mods = await fetchCourseModules(selectedCourseId);
       setCourseModules(mods);
       toast.success('Aula salva no módulo.');
@@ -519,12 +570,14 @@ export function AdminPage() {
 
   async function handleReissueCertificate(cert: Certificate) {
     try {
+      const spec = getNrCertificateSpec(cert.nrCode || cert.courseId, cert.courseTitle, cert.workloadHours);
       const res = await fetch('/api/certificates/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           validationCode: cert.validationCode,
           studentName: cert.studentName,
+          studentCpf: cert.studentCpf,
           courseTitle: cert.courseTitle,
           nrCode: cert.nrCode,
           workloadHours: cert.workloadHours,
@@ -537,6 +590,9 @@ export function AdminPage() {
           templateBody: settings.certificateTemplateBody,
           companyName: settings.companyName,
           cnpj: settings.cnpj,
+          companyPhone: settings.phone,
+          companyAddress: settings.address,
+          syllabusItems: spec.syllabus,
         }),
       });
       const data = await res.json();
@@ -1158,25 +1214,142 @@ export function AdminPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                  <label className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer hover:bg-slate-50">
-                    <Upload className="w-4 h-4" />
-                    {uploadingCover ? 'Enviando...' : 'Upload Capa via Vercel Blob'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleCoverUpload(f);
-                      }}
-                    />
-                  </label>
-                  {editingCourse.coverImageUrl && (
-                    <span className="text-xs font-mono text-emerald-700 truncate max-w-md">
-                      {editingCourse.coverImageUrl}
+                <div className="pt-4 border-t border-slate-200 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-xs font-mono font-bold text-[#0A2540] uppercase">
+                        Imagens do Curso · Upload exclusivo via Vercel Blob Storage
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Envie diretamente arquivos JPG, PNG ou WEBP (armazenados com segurança no Vercel Blob, sem URLs externas).
+                      </p>
+                    </div>
+                    <span
+                      className={`text-[11px] font-mono font-semibold px-2.5 py-1 rounded-md border ${
+                        blobConfigured
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                      }`}
+                    >
+                      {blobConfigured ? 'Vercel Blob Ativo' : 'Preview Local'}
                     </span>
-                  )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Cover Image Upload */}
+                    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <ImageIcon className="w-4 h-4 text-[#0F2C59]" />
+                          Foto de Capa (Card do catálogo)
+                        </span>
+                        {editingCourse.coverImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingCourse({ ...editingCourse, coverImageUrl: '' })}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-700 cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            Remover
+                          </button>
+                        )}
+                      </div>
+
+                      {editingCourse.coverImageUrl && (
+                        <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-900">
+                          <img
+                            src={editingCourse.coverImageUrl}
+                            alt="Prévia da capa do curso"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:border-[#0A2540] rounded-lg text-xs font-semibold cursor-pointer transition-colors">
+                          <Upload className="w-4 h-4 text-[#0F2C59]" />
+                          {uploadingCover
+                            ? `Enviando (${coverUploadProgress}%)...`
+                            : editingCourse.coverImageUrl
+                              ? 'Trocar Capa via Vercel Blob'
+                              : 'Enviar Capa via Vercel Blob'}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/avif"
+                            className="hidden"
+                            disabled={uploadingCover}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleCoverUpload(f, 'cover');
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                      </div>
+                      {editingCourse.coverImageUrl && (
+                        <p className="text-[11px] font-mono text-emerald-700 truncate">
+                          {editingCourse.coverImageUrl}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Optional Banner Image Upload */}
+                    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <ImageIcon className="w-4 h-4 text-[#0F2C59]" />
+                          Banner da Página de Vendas (opcional)
+                        </span>
+                        {editingCourse.bannerImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingCourse({ ...editingCourse, bannerImageUrl: '' })}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-700 cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            Remover
+                          </button>
+                        )}
+                      </div>
+
+                      {editingCourse.bannerImageUrl && (
+                        <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-900">
+                          <img
+                            src={editingCourse.bannerImageUrl}
+                            alt="Prévia do banner do curso"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:border-[#0A2540] rounded-lg text-xs font-semibold cursor-pointer transition-colors">
+                          <Upload className="w-4 h-4 text-[#0F2C59]" />
+                          {uploadingBanner
+                            ? `Enviando (${coverUploadProgress}%)...`
+                            : editingCourse.bannerImageUrl
+                              ? 'Trocar Banner via Vercel Blob'
+                              : 'Enviar Banner via Vercel Blob'}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/avif"
+                            className="hidden"
+                            disabled={uploadingBanner}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleCoverUpload(f, 'banner');
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                      </div>
+                      {editingCourse.bannerImageUrl && (
+                        <p className="text-[11px] font-mono text-emerald-700 truncate">
+                          {editingCourse.bannerImageUrl}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
@@ -1851,33 +2024,109 @@ export function AdminPage() {
                       className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
                     />
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <select
                       value={newLessonType}
-                      onChange={(e) => setNewLessonType(e.target.value as 'text' | 'video' | 'pdf')}
+                      onChange={(e) => {
+                        setNewLessonType(e.target.value as 'text' | 'video' | 'pdf' | 'image');
+                        setNewLessonMediaUrl('');
+                      }}
                       className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
                     >
                       <option value="text">Texto</option>
-                      <option value="video">Vídeo (Blob)</option>
-                      <option value="pdf">PDF (Blob)</option>
+                      <option value="video">Vídeo (Vercel Blob)</option>
+                      <option value="pdf">PDF / Apostila (Vercel Blob)</option>
+                      <option value="image">Imagem / Infográfico (Vercel Blob)</option>
                     </select>
                     {newLessonType !== 'text' && (
-                      <label className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">
-                        <Upload className="w-3.5 h-3.5" />
-                        {uploadingLessonMedia ? 'Enviando...' : `Enviar ${newLessonType.toUpperCase()}`}
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-300 hover:border-[#0A2540] rounded-lg text-xs font-semibold cursor-pointer">
+                        <Upload className="w-3.5 h-3.5 text-[#0F2C59]" />
+                        {uploadingLessonMedia
+                          ? `Enviando (${lessonUploadProgress}%)...`
+                          : `Enviar ${newLessonType.toUpperCase()} via Vercel Blob`}
                         <input
                           type="file"
+                          accept={
+                            newLessonType === 'video'
+                              ? 'video/mp4,video/webm,video/quicktime'
+                              : newLessonType === 'pdf'
+                                ? 'application/pdf,.pdf'
+                                : 'image/jpeg,image/png,image/webp,image/avif'
+                          }
+                          disabled={uploadingLessonMedia}
                           className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
-                            if (f) handleLessonMediaUpload(f);
+                            if (f) handleLessonMediaUpload(f, 'primary');
+                            e.target.value = '';
                           }}
                         />
                       </label>
                     )}
                   </div>
                   {newLessonMediaUrl && (
-                    <p className="text-xs font-mono text-emerald-700 truncate">{newLessonMediaUrl}</p>
+                    <div className="bg-emerald-50/70 border border-emerald-200 rounded-lg p-2.5 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-mono text-emerald-800 truncate">{newLessonMediaUrl}</p>
+                        <button
+                          type="button"
+                          onClick={() => setNewLessonMediaUrl('')}
+                          className="text-xs font-semibold text-red-600 hover:text-red-700 cursor-pointer shrink-0"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                      {newLessonType === 'image' && (
+                        <img
+                          src={newLessonMediaUrl}
+                          alt="Prévia da imagem da aula"
+                          className="max-h-40 rounded-md border border-emerald-200 object-cover"
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Optional complementary attachment (PDF or Image) on any lesson */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                    <span className="text-xs font-medium text-slate-600">
+                      Anexo complementar opcional (PDF ou Imagem via Vercel Blob)
+                    </span>
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:border-[#0A2540] rounded-lg text-xs font-semibold cursor-pointer">
+                      <Upload className="w-3.5 h-3.5 text-[#0F2C59]" />
+                      {uploadingLessonMedia
+                        ? `Enviando (${lessonUploadProgress}%)...`
+                        : newLessonAttachmentUrl
+                          ? 'Trocar anexo'
+                          : 'Anexar arquivo'}
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf,image/jpeg,image/png,image/webp,image/avif"
+                        disabled={uploadingLessonMedia}
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleLessonMediaUpload(f, 'attachment');
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {newLessonAttachmentUrl && (
+                    <div className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
+                      <span className="text-xs font-mono text-emerald-700 truncate">
+                        Anexo: {newLessonAttachmentName || newLessonAttachmentUrl}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewLessonAttachmentUrl('');
+                          setNewLessonAttachmentName('');
+                        }}
+                        className="text-xs font-semibold text-red-600 cursor-pointer shrink-0"
+                      >
+                        Remover
+                      </button>
+                    </div>
                   )}
                   <textarea
                     rows={3}
@@ -2350,12 +2599,25 @@ export function AdminPage() {
               </p>
             </div>
 
-            {/* InfinitePay Configuration Card */}
+            {/* InfinitePay & Vercel Blob Configuration Card */}
             <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display font-bold text-slate-900">InfinitePay Checkout Integrado</h2>
-                <span className="text-xs font-mono text-slate-500">
-                  Vercel Blob: {blobConfigured ? 'Conectado' : 'Variável BLOB_READ_WRITE_TOKEN ausente (modo preview)'}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-display font-bold text-slate-900">InfinitePay & Storage Vercel Blob</h2>
+                <span
+                  className={`text-xs font-mono px-2.5 py-1 rounded-md border ${
+                    blobConfigured
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      : blobStorageMode === 'missing-token'
+                        ? 'bg-red-50 border-red-200 text-red-700'
+                        : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}
+                >
+                  Vercel Blob:{' '}
+                  {blobConfigured
+                    ? 'Conectado (*.blob.vercel-storage.com)'
+                    : blobStorageMode === 'missing-token'
+                      ? 'BLOB_READ_WRITE_TOKEN ausente na Vercel'
+                      : 'Modo Preview Local (configure BLOB_READ_WRITE_TOKEN na Vercel)'}
                 </span>
               </div>
 

@@ -20,11 +20,14 @@ export interface CourseFAQ {
 export interface CourseLesson {
   id: string;
   title: string;
-  type: 'text' | 'video' | 'pdf';
+  type: 'text' | 'video' | 'pdf' | 'image';
   durationMinutes: number;
   content: string;
   videoUrl?: string;
   pdfUrl?: string;
+  imageUrl?: string;
+  attachmentUrl?: string;
+  attachmentName?: string;
   order: number;
 }
 
@@ -169,6 +172,7 @@ export interface Certificate {
   validationCode: string;
   userId: string;
   studentName: string;
+  studentCpf?: string;
   courseId: string;
   courseTitle: string;
   nrCode: string;

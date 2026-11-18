@@ -162,7 +162,9 @@ export function SafetyDocsSection({
   const [cnpj, setCnpj] = useState('');
   const [cnpjCardUrl, setCnpjCardUrl] = useState('');
   const [cnpjFileName, setCnpjFileName] = useState('');
+  const [cnpjIsImage, setCnpjIsImage] = useState(false);
   const [uploadingCnpj, setUploadingCnpj] = useState(false);
+  const [cnpjUploadProgress, setCnpjUploadProgress] = useState(0);
   const [employeeCount, setEmployeeCount] = useState('15');
   const [risksDescription, setRisksDescription] = useState('');
   const [pgrBusy, setPgrBusy] = useState(false);
@@ -243,15 +245,22 @@ export function SafetyDocsSection({
 
   async function handleCnpjUpload(file: File) {
     setUploadingCnpj(true);
+    setCnpjUploadProgress(0);
     try {
-      const res = await uploadFileToVercelBlob(file, 'safety-docs');
+      const res = await uploadFileToVercelBlob(file, 'safety-docs', setCnpjUploadProgress);
       setCnpjCardUrl(res.url);
       setCnpjFileName(file.name);
-      toast.success('Cartão CNPJ anexado com segurança.');
+      setCnpjIsImage(file.type.startsWith('image/'));
+      toast.success(
+        `Cartão CNPJ salvo no ${
+          res.storageProvider === 'vercel-blob' ? 'Vercel Blob Storage' : 'Preview Local'
+        }.`
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao enviar Cartão CNPJ.');
     } finally {
       setUploadingCnpj(false);
+      setCnpjUploadProgress(0);
     }
   }
 
@@ -316,7 +325,7 @@ export function SafetyDocsSection({
         {/* Two Distinct Contrast Cards: APR vs PGR */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* Card 1: APR */}
-          <article className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 flex flex-col justify-between gap-6 shadow-[0_8px_30px_-8px_rgba(10,37,64,0.08)]">
+          <article className="bg-white border border-slate-200/90 hover:border-[#0A2540]/30 rounded-2xl p-6 sm:p-8 flex flex-col justify-between gap-6 shadow-[0_12px_34px_-12px_rgba(10,37,64,0.09)] hover:shadow-[0_24px_48px_-16px_rgba(10,37,64,0.16)] hover:-translate-y-0.5 transition-all duration-300">
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#F5C518] text-[#0A2540] text-xs font-mono font-extrabold uppercase tracking-wide">
@@ -379,7 +388,7 @@ export function SafetyDocsSection({
               <button
                 type="button"
                 onClick={() => selectTool('apr')}
-                className="inline-flex items-center justify-center gap-2 min-h-[46px] px-5 py-3 bg-[#0A2540] hover:bg-[#0F2C59] text-white text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[46px] px-5 py-3 bg-[#0A2540] hover:bg-[#0F2C59] hover:-translate-y-0.5 text-white text-sm font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shrink-0 cursor-pointer"
               >
                 Solicitar APR
                 <ArrowRight className="w-4 h-4" />
@@ -388,7 +397,7 @@ export function SafetyDocsSection({
           </article>
 
           {/* Card 2: PGR */}
-          <article className="bg-[#0A2540] text-white border border-[#0F2C59] rounded-2xl p-6 sm:p-8 flex flex-col justify-between gap-6 shadow-[0_12px_36px_-10px_rgba(10,37,64,0.35)]">
+          <article className="bg-navy-grid text-white border border-white/15 hover:border-[#F5C518]/50 rounded-2xl p-6 sm:p-8 flex flex-col justify-between gap-6 shadow-[0_18px_46px_-14px_rgba(10,37,64,0.42)] hover:-translate-y-0.5 transition-all duration-300">
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 border border-white/15 text-[#F5C518] text-xs font-mono font-extrabold uppercase tracking-wide">
@@ -445,7 +454,7 @@ export function SafetyDocsSection({
               <button
                 type="button"
                 onClick={() => selectTool('pgr')}
-                className="inline-flex items-center justify-center gap-2 min-h-[46px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[46px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 text-[#0A2540] text-sm font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shrink-0 cursor-pointer shadow-[0_8px_20px_-6px_rgba(245,197,24,0.55)]"
               >
                 Solicitar PGR
                 <ArrowRight className="w-4 h-4" />
@@ -852,34 +861,74 @@ export function SafetyDocsSection({
                   </div>
 
                   {/* Optional Cartão CNPJ upload via Vercel Blob */}
-                  <div className="bg-[#F7F9FC] border border-slate-200 rounded-xl p-4 space-y-2">
+                  <div className="bg-[#F7F9FC] border border-slate-200 rounded-xl p-4 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-bold text-[#0A2540]">
-                          Anexar Cartão CNPJ (PDF ou Imagem — opcional)
+                          Anexar Cartão CNPJ (PDF ou Imagem via Vercel Blob — opcional)
                         </p>
                         <p className="text-xs text-slate-500">
-                          Agiliza a conferência oficial de razão social, endereço e CNAE.
+                          Upload direto para armazenamento seguro Vercel Blob. Agiliza a conferência oficial de razão social, endereço e CNAE.
                         </p>
                       </div>
                       <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-[#0F2C59] hover:bg-slate-50 text-[#0A2540] text-xs font-bold rounded-lg cursor-pointer shrink-0">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{uploadingCnpj ? 'Enviando...' : cnpjCardUrl ? 'Trocar arquivo' : 'Enviar Cartão CNPJ'}</span>
+                        <span>
+                          {uploadingCnpj
+                            ? `Enviando (${cnpjUploadProgress}%)...`
+                            : cnpjCardUrl
+                              ? 'Trocar arquivo'
+                              : 'Enviar Cartão CNPJ'}
+                        </span>
                         <input
                           type="file"
-                          accept=".pdf,image/*"
+                          accept=".pdf,application/pdf,image/jpeg,image/png,image/webp"
+                          disabled={uploadingCnpj}
                           className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
                             if (f) handleCnpjUpload(f);
+                            e.target.value = '';
                           }}
                         />
                       </label>
                     </div>
-                    {cnpjFileName && (
-                      <p className="text-xs font-mono text-emerald-700 font-semibold">
-                        Arquivo anexado: {cnpjFileName}
-                      </p>
+                    {cnpjCardUrl && (
+                      <div className="bg-white border border-emerald-200 rounded-lg p-3 space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs font-mono text-emerald-700 font-semibold truncate max-w-sm">
+                            Anexado no Storage: {cnpjFileName || 'Cartão CNPJ'}
+                          </span>
+                          <div className="flex items-center gap-3 text-xs">
+                            <a
+                              href={cnpjCardUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-semibold text-[#0F2C59] underline"
+                            >
+                              Visualizar
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCnpjCardUrl('');
+                                setCnpjFileName('');
+                                setCnpjIsImage(false);
+                              }}
+                              className="font-semibold text-red-600 cursor-pointer"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                        </div>
+                        {cnpjIsImage && (
+                          <img
+                            src={cnpjCardUrl}
+                            alt="Prévia do Cartão CNPJ anexado"
+                            className="max-h-36 rounded-md border border-slate-200 object-contain"
+                          />
+                        )}
+                      </div>
                     )}
                   </div>
 
