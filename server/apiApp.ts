@@ -416,17 +416,21 @@ export function createApiApp(): express.Express {
       }
 
       if (orderMeta?.userId && Array.isArray(orderMeta.courseIds) && orderMeta.courseIds.length > 0) {
-        pendingOrderMetaMap.set(resolvedOrderId, {
-          orderId: resolvedOrderId,
-          userId: orderMeta.userId,
-          userName: orderMeta.userName || customerName,
-          userEmail: orderMeta.userEmail || customerEmail,
-          courseIds: orderMeta.courseIds,
-          courseTitle: orderMeta.courseTitle || courseTitle,
-          amountCents: orderMeta.amountCents ?? priceCents,
-          createdAt: new Date().toISOString(),
-        });
-        writeJsonMap(ORDERS_META_FILE, pendingOrderMetaMap);
+        try {
+          pendingOrderMetaMap.set(resolvedOrderId, {
+            orderId: resolvedOrderId,
+            userId: orderMeta.userId,
+            userName: orderMeta.userName || customerName,
+            userEmail: orderMeta.userEmail || customerEmail,
+            courseIds: orderMeta.courseIds,
+            courseTitle: orderMeta.courseTitle || courseTitle,
+            amountCents: orderMeta.amountCents ?? priceCents,
+            createdAt: new Date().toISOString(),
+          });
+          writeJsonMap(ORDERS_META_FILE, pendingOrderMetaMap);
+        } catch (metaErr) {
+          console.warn('Non-blocking metadata write warning:', metaErr);
+        }
       }
 
       const handle = getInfinitePayHandle(handleOverride);
