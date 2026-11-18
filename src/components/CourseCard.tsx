@@ -1,32 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ArrowRight, Loader2, ShieldCheck, Star } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '../context/AuthContext';
+import { ArrowRight, ShieldCheck, Star } from 'lucide-react';
 import { formatCurrencyBRL, formatInstallmentBRL } from '../data/seedCourses';
-import { startDirectCourseCheckout } from '../lib/infinitepayClient';
 import type { Course } from '../types';
 
 export function CourseCard({ course, index = 0 }: { course: Course; index?: number }) {
-  const { user, profile } = useAuth();
   const [imgError, setImgError] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
-
-  async function handleDirectBuy() {
-    if (redirecting) return;
-    setRedirecting(true);
-    try {
-      await startDirectCourseCheckout(course, { user, profile });
-    } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : 'Não foi possível iniciar o pagamento via InfinitePay. Tente novamente.'
-      );
-      setRedirecting(false);
-    }
-  }
 
   return (
     <motion.article
@@ -112,24 +92,13 @@ export function CourseCard({ course, index = 0 }: { course: Course; index?: numb
               Ver programa
             </Link>
 
-            <button
-              type="button"
-              disabled={redirecting}
-              onClick={handleDirectBuy}
-              className="btn-sheen inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#F5C518] hover:bg-[#E0B20F] active:scale-[0.98] disabled:opacity-60 text-[#0A2540] text-xs font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_6px_16px_-6px_rgba(245,197,24,0.65)] cursor-pointer"
+            <Link
+              to={`/cursos/${course.slug}`}
+              className="btn-sheen inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#F5C518] hover:bg-[#E0B20F] active:scale-[0.98] text-[#0A2540] text-xs font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_6px_16px_-6px_rgba(245,197,24,0.65)]"
             >
-              {redirecting ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Abrindo...
-                </>
-              ) : (
-                <>
-                  Matricular-se
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </>
-              )}
-            </button>
+              Matricular-se
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
           </div>
         </div>
       </div>

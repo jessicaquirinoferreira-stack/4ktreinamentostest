@@ -9,11 +9,13 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  CreditCard,
   FileCheck2,
   Gift,
   Loader2,
   Lock,
   MinusCircle,
+  QrCode,
   ShieldCheck,
   Star,
   Users,
@@ -27,6 +29,7 @@ import {
   INSTRUCTOR_PORTRAIT_URL,
 } from '../data/seedCourses';
 import {
+  attachCheckoutUrlToOrder,
   createPendingOrder,
   fetchCourseBySlug,
   fetchCourseModules,
@@ -35,13 +38,17 @@ import {
   fetchTestimonials,
   releaseOrderAndEnrollAdmin,
 } from '../lib/firestoreService';
-import { startDirectCourseCheckout } from '../lib/infinitepayClient';
+import {
+  createInfinitePayPaymentLink,
+  generateOrderNsu,
+  saveLastInfinitePayOrder,
+} from '../lib/infinitepayClient';
 import type { Course, CourseModule, FunnelOffer, Testimonial } from '../types';
 
 export function CourseDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { user, profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin, loginWithGoogle, loginWithEmail, registerWithEmail } = useAuth();
   const { scrollY } = useScroll();
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -55,6 +62,22 @@ export function CourseDetailPage() {
   const [openModuleIdx, setOpenModuleIdx] = useState<number | null>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showStickyCta, setShowStickyCta] = useState(false);
+
+  // Student Account & Payment Method state for Course Detail checkout
+  const [authTab, setAuthTab] = useState<'register' | 'login'>('register');
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerEmail, setBuyerEmail] = useState('');
+  const [buyerCpf, setBuyerCpf] = useState('');
+  const [buyerPassword, setBuyerPassword] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card'>('pix');
+
+  useEffect(() => {
+    if (user) {
+      setBuyerName((prev) => prev || profile?.name || user.displayName || '');
+      setBuyerEmail((prev) => prev || user.email || '');
+      setBuyerCpf((prev) => prev || profile?.cpf || '');
+    }
+  }, [user, profile]);
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
     setShowStickyCta(latest > 520);
@@ -137,16 +160,108 @@ export function CourseDetailPage() {
     }
   }
 
-  async function handleInfinitePayDirectEnroll() {
+  async function tryAuthenticateIfProvided() {
+    if (user) return user;
+    if (!buyerEmail.trim() || !buyerPassword) {
+      return null;
+    }
+    try {
+      if (authTab === 'register') {
+        return await registerWithEmail(
+          buyerName.trim() || 'Aluno 4k',
+          buyerEmail.trim(),
+          buyerPassword,
+          buyerCpf.trim()
+        );
+      }
+      return await loginWithEmail(buyerEmail.trim(), buyerPassword);
+    } catch (err: any) {
+      if (err?.code === 'auth/operation-not-allowed') {
+        return null;
+      }
+      throw err;
+    }
+  }
+
+  async function handlePayAndCheckout(e?: React.FormEvent) {
+    e?.preventDefault?.();
     if (!course || startingCheckout) return;
     setStartingCheckout(true);
     try {
-      await startDirectCourseCheckout(course, { user, profile });
+      const authedUser = await tryAuthenticateIfProvided();
+      const customerName =
+        buyerName.trim() || profile?.name || authedUser?.displayName || 'Aluno 4k';
+      const customerEmail = buyerEmail.trim() || authedUser?.email || '';
+
+      const courseDescription = `${course.nrCode} – ${course.title}`.slice(0, 120);
+      const priceCents = Math.round(Number(course.priceCents));
+      const orderId = generateOrderNsu(course.nrCode || course.slug);
+
+      if (authedUser?.uid) {
+        await createPendingOrder({
+          id: orderId,
+          userId: authedUser.uid,
+          userName: customerName,
+          userEmail: customerEmail,
+          courseId: course.id,
+          courseIds: [course.id],
+          courseTitle: courseDescription,
+          itemsSummary: [
+            {
+              id: course.id,
+              title: courseDescription,
+              priceCents,
+              kind: 'course',
+            },
+          ],
+          amountCents: priceCents,
+          status: 'pending',
+          paymentProvider: 'infinitepay',
+        }).catch(() => {});
+      }
+
+      saveLastInfinitePayOrder({
+        order_nsu: orderId,
+        courseId: course.id,
+        courseTitle: courseDescription,
+        priceCents,
+        createdAt: new Date().toISOString(),
+      });
+
+      const { url } = await createInfinitePayPaymentLink({
+        orderId,
+        items: [
+          {
+            description: courseDescription,
+            price: priceCents,
+            quantity: 1,
+          },
+        ],
+        customerName: customerName || undefined,
+        customerEmail: customerEmail || undefined,
+        redirectPath: '/obrigado',
+        orderMeta: authedUser?.uid
+          ? {
+              userId: authedUser.uid,
+              userName: customerName,
+              userEmail: customerEmail,
+              courseIds: [course.id],
+              courseTitle: courseDescription,
+              amountCents: priceCents,
+            }
+          : undefined,
+      });
+
+      if (authedUser?.uid) {
+        await attachCheckoutUrlToOrder(orderId, url).catch(() => {});
+      }
+
+      window.location.href = url;
     } catch (err) {
       toast.error(
         err instanceof Error
           ? err.message
-          : 'Não foi possível gerar o checkout InfinitePay. Tente novamente.'
+          : 'Não foi possível iniciar o pagamento pela InfinitePay. Tente novamente.'
       );
       setStartingCheckout(false);
     }
@@ -341,11 +456,129 @@ export function CourseDetailPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2.5">
+                <form onSubmit={handlePayAndCheckout} className="space-y-4">
+                  {/* Student account / login info */}
+                  <div className="bg-[#F7F9FC] border border-slate-200 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                      <span className="text-xs font-mono font-bold text-[#0A2540] uppercase">
+                        Área do Aluno & Certificado
+                      </span>
+                      {user ? (
+                        <span className="text-[11px] font-mono text-emerald-700 font-semibold">Conectado</span>
+                      ) : (
+                        <div className="flex gap-1 text-[11px]">
+                          <button
+                            type="button"
+                            onClick={() => setAuthTab('register')}
+                            className={`px-2 py-0.5 rounded cursor-pointer ${
+                              authTab === 'register' ? 'bg-[#0A2540] text-white font-bold' : 'text-slate-600'
+                            }`}
+                          >
+                            Cadastro
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAuthTab('login')}
+                            className={`px-2 py-0.5 rounded cursor-pointer ${
+                              authTab === 'login' ? 'bg-[#0A2540] text-white font-bold' : 'text-slate-600'
+                            }`}
+                          >
+                            Entrar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {user ? (
+                      <div className="space-y-1 text-xs text-slate-700">
+                        <p><strong>Aluno:</strong> {profile?.name || user.displayName || buyerName || 'Aluno'}</p>
+                        <p className="text-slate-500"><strong>E-mail:</strong> {user.email}</p>
+                        <p className="text-[11px] text-emerald-700 font-medium">O curso será liberado automaticamente na sua Área do Aluno.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        <div className="grid grid-cols-1 gap-2">
+                          {authTab === 'register' && (
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Nome completo *</label>
+                              <input
+                                type="text"
+                                required
+                                value={buyerName}
+                                onChange={(e) => setBuyerName(e.target.value)}
+                                placeholder="Nome para o certificado"
+                                className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                              />
+                            </div>
+                          )}
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">E-mail de acesso *</label>
+                            <input
+                              type="email"
+                              required
+                              value={buyerEmail}
+                              onChange={(e) => setBuyerEmail(e.target.value)}
+                              placeholder="seu@email.com"
+                              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Senha (criar ou acessar)</label>
+                            <input
+                              type="password"
+                              minLength={6}
+                              value={buyerPassword}
+                              onChange={(e) => setBuyerPassword(e.target.value)}
+                              placeholder="Mínimo 6 caracteres"
+                              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment method selection: Pix or Card */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">Forma de pagamento (InfinitePay)</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('pix')}
+                        className={`p-2.5 rounded-lg border text-left flex items-center gap-2 cursor-pointer transition-colors ${
+                          paymentMethod === 'pix'
+                            ? 'border-[#0A2540] bg-[#0A2540] text-white'
+                            : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800'
+                        }`}
+                      >
+                        <QrCode className={`w-4 h-4 shrink-0 ${paymentMethod === 'pix' ? 'text-[#F5C518]' : 'text-emerald-600'}`} />
+                        <div>
+                          <span className="block text-xs font-bold">Pix</span>
+                          <span className={`block text-[10px] ${paymentMethod === 'pix' ? 'text-slate-300' : 'text-slate-500'}`}>Liberação imediata</span>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('card')}
+                        className={`p-2.5 rounded-lg border text-left flex items-center gap-2 cursor-pointer transition-colors ${
+                          paymentMethod === 'card'
+                            ? 'border-[#0A2540] bg-[#0A2540] text-white'
+                            : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800'
+                        }`}
+                      >
+                        <CreditCard className={`w-4 h-4 shrink-0 ${paymentMethod === 'card' ? 'text-[#F5C518]' : 'text-[#0F2C59]'}`} />
+                        <div>
+                          <span className="block text-xs font-bold">Cartão</span>
+                          <span className={`block text-[10px] ${paymentMethod === 'card' ? 'text-slate-300' : 'text-slate-500'}`}>Até 12x</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
                   <button
-                    type="button"
+                    type="submit"
                     disabled={startingCheckout}
-                    onClick={handleInfinitePayDirectEnroll}
                     className="btn-sheen w-full min-h-[48px] py-3.5 px-5 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-60 text-[#0A2540] font-extrabold text-sm sm:text-base rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0_10px_24px_-8px_rgba(245,197,24,0.55)] cursor-pointer"
                   >
                     {startingCheckout ? (
@@ -356,30 +589,23 @@ export function CourseDetailPage() {
                     ) : (
                       <>
                         <Lock className="w-4 h-4" />
-                        Matricular-se agora (Pix ou 12x)
+                        Pagar {formatCurrencyBRL(course.priceCents)} ({paymentMethod === 'pix' ? 'Pix' : 'Cartão'})
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>
-
-                  <Link
-                    to={`/checkout/${course.slug}`}
-                    className="block text-center text-xs font-medium text-[#0F2C59] hover:underline py-1"
-                  >
-                    Ou informar dados do aluno / adicionar outro curso no checkout
-                  </Link>
 
                   {isAdmin && user && (
                     <button
                       type="button"
                       disabled={buyingTest}
                       onClick={handleAdminTestEnroll}
-                      className="w-full py-2.5 px-4 border border-[#0F2C59] hover:bg-[#0A2540]/5 text-[#0A2540] text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                      className="w-full py-2 px-4 border border-[#0F2C59] hover:bg-[#0A2540]/5 text-[#0A2540] text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                     >
                       {buyingTest ? 'Liberando...' : 'Admin: Liberar matrícula em modo teste'}
                     </button>
                   )}
-                </div>
+                </form>
 
                 <ul className="space-y-2.5 text-xs sm:text-sm text-slate-700 border-t border-slate-100 pt-4">
                   <li className="flex items-center gap-2.5">
@@ -519,7 +745,7 @@ export function CourseDetailPage() {
               <button
                 type="button"
                 disabled={startingCheckout}
-                onClick={handleInfinitePayDirectEnroll}
+                onClick={() => handlePayAndCheckout()}
                 className="w-full min-h-[44px] py-3 px-4 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] text-sm font-extrabold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 {startingCheckout ? 'Abrindo InfinitePay...' : 'Garantir acesso + bônus agora'}
@@ -695,7 +921,7 @@ export function CourseDetailPage() {
           <button
             type="button"
             disabled={startingCheckout}
-            onClick={handleInfinitePayDirectEnroll}
+            onClick={() => handlePayAndCheckout()}
             className="inline-flex items-center justify-center min-h-[46px] px-6 py-3 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] font-extrabold text-sm rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             {startingCheckout ? 'Abrindo InfinitePay...' : 'Matricular sem risco'}
@@ -798,7 +1024,7 @@ export function CourseDetailPage() {
               <button
                 type="button"
                 disabled={startingCheckout}
-                onClick={handleInfinitePayDirectEnroll}
+                onClick={() => handlePayAndCheckout()}
                 className="inline-flex items-center justify-center min-h-[42px] px-4 sm:px-5 py-2 bg-[#F5C518] hover:bg-[#E0B20F] disabled:opacity-60 text-[#0A2540] text-xs sm:text-sm font-extrabold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
               >
                 {startingCheckout ? 'Redirecionando...' : 'Matricular agora'}

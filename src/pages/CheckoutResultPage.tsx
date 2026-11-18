@@ -22,17 +22,19 @@ import {
   fetchPublishedCourses,
   releaseOrderAndEnrollAdmin,
 } from '../lib/firestoreService';
+import { readLastInfinitePayOrder } from '../lib/infinitepayClient';
 import type { Course, FunnelOffer, Order } from '../types';
 
 export function CheckoutSuccessPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { user, profile, isAdmin } = useAuth();
+  const lastDirectOrder = readLastInfinitePayOrder();
   const fallbackOrderNsu = (() => {
     try {
-      return localStorage.getItem('4k_last_order_nsu') || '';
+      return localStorage.getItem('4k_last_order_nsu') || lastDirectOrder?.order_nsu || '';
     } catch {
-      return '';
+      return lastDirectOrder?.order_nsu || '';
     }
   })();
   const orderNsu = params.get('order_nsu') || fallbackOrderNsu;
@@ -73,6 +75,22 @@ export function CheckoutSuccessPage() {
             const cachedRaw = localStorage.getItem(`4k_pending_order_${orderNsu}`);
             if (cachedRaw) {
               fetchedOrder = JSON.parse(cachedRaw) as Order;
+              setOrder(fetchedOrder);
+            } else if (lastDirectOrder && lastDirectOrder.order_nsu === orderNsu) {
+              fetchedOrder = {
+                id: lastDirectOrder.order_nsu,
+                userId: user?.uid || '',
+                userName: profile?.name || user?.displayName || '',
+                userEmail: user?.email || '',
+                courseId: lastDirectOrder.courseId || '',
+                courseIds: lastDirectOrder.courseId ? [lastDirectOrder.courseId] : [],
+                courseTitle: lastDirectOrder.courseTitle,
+                amountCents: lastDirectOrder.priceCents,
+                status: 'pending',
+                paymentProvider: 'infinitepay',
+                createdAt: null,
+                updatedAt: null,
+              };
               setOrder(fetchedOrder);
             }
           } catch {

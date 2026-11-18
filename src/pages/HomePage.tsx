@@ -9,7 +9,6 @@ import {
   ClipboardCheck,
   FileCheck2,
   Layers,
-  Loader2,
   Search,
   ShieldCheck,
   Star,
@@ -28,7 +27,6 @@ import {
   INSTRUCTOR_PORTRAIT_URL,
 } from '../data/seedCourses';
 import { fetchFunnelOffers, fetchTestimonials, submitCorporateQuote } from '../lib/firestoreService';
-import { startDirectCourseCheckout } from '../lib/infinitepayClient';
 import type { Course, FunnelOffer, PublicSettings, Testimonial } from '../types';
 
 interface HomePageProps {
@@ -132,7 +130,6 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [combos, setCombos] = useState<FunnelOffer[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [spotlightCheckoutLoading, setSpotlightCheckoutLoading] = useState(false);
 
   useEffect(() => {
     fetchFunnelOffers(true).then((offers) => {
@@ -308,17 +305,17 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
               initial={{ opacity: 0, scale: 0.985 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-5 flex flex-col justify-center gap-4"
+              className="lg:col-span-5 flex flex-col gap-4"
             >
-              <div className="group relative w-full aspect-[1376/768] rounded-2xl overflow-hidden border border-white/15 bg-[#0F2C59] shadow-[0_24px_60px_-16px_rgba(0,0,0,0.55)]">
+              <div className="group relative flex-1 min-h-[280px] rounded-2xl overflow-hidden border border-white/15 bg-[#0F2C59] shadow-[0_24px_60px_-16px_rgba(0,0,0,0.55)]">
                 <img
                   src={HERO_IMAGE_URL}
                   alt="Engenheira de segurança do trabalho realizando inspeção técnica em obra com uniforme 4k Treinamentos"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-contain object-center block transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#071B30]/90 via-[#071B30]/40 to-transparent" />
-                <div className="absolute bottom-3.5 left-4 right-4 flex items-center justify-between text-xs text-slate-100">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#071B30]/92 via-[#0A2540]/20 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-slate-100">
                   <span className="font-medium">Conteúdo teórico conforme NR-01</span>
                   <span className="font-mono text-[#F5C518] font-bold">100% Online</span>
                 </div>
@@ -533,36 +530,13 @@ export function HomePage({ courses, settings, loadingCourses }: HomePageProps) {
                     >
                       Ver programa
                     </Link>
-                    <button
-                      type="button"
-                      disabled={spotlightCheckoutLoading}
-                      onClick={async () => {
-                        setSpotlightCheckoutLoading(true);
-                        try {
-                          await startDirectCourseCheckout(featuredSpotlight, { user, profile });
-                        } catch (err) {
-                          toast.error(
-                            err instanceof Error
-                              ? err.message
-                              : 'Não foi possível gerar o link de pagamento InfinitePay.'
-                          );
-                          setSpotlightCheckoutLoading(false);
-                        }
-                      }}
-                      className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 text-[#0A2540] text-sm font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_8px_20px_-6px_rgba(245,197,24,0.6)] cursor-pointer"
+                    <Link
+                      to={`/cursos/${featuredSpotlight.slug}`}
+                      className="btn-sheen inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 bg-[#F5C518] hover:bg-[#E0B20F] hover:-translate-y-0.5 active:scale-[0.98] text-[#0A2540] text-sm font-extrabold rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_8px_20px_-6px_rgba(245,197,24,0.6)]"
                     >
-                      {spotlightCheckoutLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Redirecionando...
-                        </>
-                      ) : (
-                        <>
-                          Matricular-se agora
-                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                        </>
-                      )}
-                    </button>
+                      Matricular-se agora
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
                   </div>
                 </div>
               </div>

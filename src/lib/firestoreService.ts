@@ -86,6 +86,7 @@ export function isManagedAssetUrl(rawUrl?: string): boolean {
   if (trimmed.startsWith('/')) {
     return (
       trimmed.startsWith('/assets/') ||
+      trimmed.startsWith('/src/assets/') ||
       trimmed.startsWith('/images/') ||
       trimmed.startsWith('/api/blob/local/')
     );
@@ -100,6 +101,7 @@ export function isManagedAssetUrl(rawUrl?: string): boolean {
       parsed.origin === window.location.origin &&
       (parsed.pathname.startsWith('/api/blob/local/') ||
         parsed.pathname.startsWith('/assets/') ||
+        parsed.pathname.startsWith('/src/assets/') ||
         parsed.pathname.startsWith('/images/'))
     ) {
       return true;
@@ -121,9 +123,34 @@ export function assertNoExternalAssetUrl(rawUrl?: string, fieldLabel = 'arquivo'
   return trimmed;
 }
 
+function isBundledSeedPath(rawUrl: string): boolean {
+  const trimmed = rawUrl.trim();
+  if (
+    trimmed.startsWith('/assets/') ||
+    trimmed.startsWith('/src/assets/') ||
+    trimmed.startsWith('/images/')
+  ) {
+    return true;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    return (
+      parsed.pathname.startsWith('/assets/') ||
+      parsed.pathname.startsWith('/src/assets/') ||
+      parsed.pathname.startsWith('/images/')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function resolveCourseImage(rawUrl: string | undefined, seedFallback: string | undefined): string | undefined {
   if (!rawUrl) return seedFallback;
-  if (LEGACY_IMAGE_UPGRADES[rawUrl] || LEGACY_HASHED_COVER_PATTERN.test(rawUrl)) {
+  if (
+    LEGACY_IMAGE_UPGRADES[rawUrl] ||
+    LEGACY_HASHED_COVER_PATTERN.test(rawUrl) ||
+    (seedFallback && isBundledSeedPath(rawUrl))
+  ) {
     return seedFallback || LEGACY_IMAGE_UPGRADES[rawUrl] || rawUrl;
   }
   if (!isManagedAssetUrl(rawUrl)) {
