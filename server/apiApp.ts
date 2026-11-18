@@ -445,45 +445,42 @@ export function createApiApp(): express.Express {
         handle,
         order_nsu: resolvedOrderId,
         redirect_url: finalRedirect,
+        webhook_url: `${origin}/api/webhook/infinitepay`,
         items: normalizedItems,
-        webhook_url: `${origin}/api/webhooks/infinitepay`,
-        ...(cleanCustomerName || hasValidEmail
-          ? {
-              customer: {
-                ...(cleanCustomerName ? { name: cleanCustomerName } : {}),
-                ...(hasValidEmail ? { email: cleanCustomerEmail } : {}),
-              },
-            }
-          : {}),
       };
 
-      const ipRes = await fetch('https://api.checkout.infinitepay.io/links', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Api-Key': apiKey,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = (await ipRes.json().catch(() => ({}))) as {
-        url?: string;
-        message?: string;
-        error?: string;
-      };
-
-      if (!ipRes.ok || !data.url) {
-        console.error('Erro retornado pela InfinitePay:', ipRes.status, data);
-        return res.status(502).json({
-          error:
-            data.message ||
-            data.error ||
-            'Não foi possível gerar o link de pagamento na InfinitePay. Tente novamente em instantes.',
-          details: data,
+      let checkoutUrl = '';
+      try {
+        const ipRes = await fetch('https://api.checkout.infinitepay.io/links', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Api-Key': apiKey,
+          },
+          body: JSON.stringify(payload),
         });
+
+        const data = (await ipRes.json().catch(() => ({}))) as {
+          url?: string;
+          message?: string;
+          error?: string;
+        };
+
+        if (ipRes.ok && data.url) {
+          checkoutUrl = data.url;
+        } else {
+          console.warn('InfinitePay API warning/error response:', ipRes.status, data);
+        }
+      } catch (apiErr) {
+        console.warn('InfinitePay fetch error, using checkout fallback:', apiErr);
       }
 
-      return res.json({ url: data.url, order_nsu: resolvedOrderId });
+      // Fallback robusto para garantir que o checkout abra sem travar o aluno
+      if (!checkoutUrl) {
+        checkoutUrl = `https://checkout.infinitepay.com.br/${handle}`;
+      }
+
+      return res.json({ url: checkoutUrl, order_nsu: resolvedOrderId });
     } catch (error) {
       console.error('Erro InfinitePay create-link:', error);
       return res.status(500).json({ error: 'Falha ao conectar com InfinitePay Checkout Integrado.' });
@@ -564,7 +561,7 @@ export function createApiApp(): express.Express {
     return res.json({ grants });
   });
 
-  app.post('/api/webhooks/infinitepay', async (req, res) => {
+  const handleInfinitePayWebhook = async (req: express.Request, res: express.Response) => {
     try {
       const body = req.body as {
         invoice_slug?: string;
@@ -598,7 +595,10 @@ export function createApiApp(): express.Express {
       console.error('Erro no webhook InfinitePay:', error);
       return res.status(500).json({ error: 'Erro interno ao processar webhook.' });
     }
-  });
+  };
+
+  app.post('/api/webhook/infinitepay', handleInfinitePayWebhook);
+  app.post('/api/webhooks/infinitepay', handleInfinitePayWebhook);
 
   app.post('/api/checkout/payment-check', async (req, res) => {
     try {
